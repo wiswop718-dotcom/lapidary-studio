@@ -1,0 +1,1641 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Lapidary Studio</title>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700&family=Shippori+Mincho:wght@600;800&family=Cormorant+Garamond:wght@600;700&display=swap" rel="stylesheet">
+<style>
+:root{color-scheme:dark;--ink:#e9eef5;--mute:#9aabc0;--acc:#5fd4c8;--panel:rgba(18,22,29,.74);--line:rgba(255,255,255,.15);--card:#1b222d;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0;background:#12161d;color:var(--ink);font-family:"Zen Maru Gothic","Hiragino Maru Gothic ProN","Yu Gothic",sans-serif;overflow:hidden;-webkit-user-select:none;user-select:none}
+canvas{position:fixed;inset:0;width:100%;height:100%;touch-action:none;display:block}
+#cut2{pointer-events:none}
+.top{position:fixed;left:0;right:0;top:env(safe-area-inset-top,0px);padding:12px 16px;display:flex;justify-content:space-between;align-items:flex-start;pointer-events:none}
+.money{font-size:13px;color:var(--mute)}.money b{color:var(--ink);font-size:18px}
+.gauge{width:56%;max-width:260px}
+.lab{display:flex;justify-content:space-between;font-size:13px;color:var(--mute);margin-bottom:4px}
+.lab b{color:var(--ink);font-size:20px}
+.bar{height:10px;border-radius:5px;background:rgba(255,255,255,.12);overflow:hidden}
+.bar i{display:block;height:100%;width:0;background:var(--acc);border-radius:5px;transition:width .12s}
+.hint{position:fixed;left:0;right:0;top:calc(env(safe-area-inset-top,0px) + 74px);text-align:center;font-size:14px;color:var(--mute);pointer-events:none;line-height:1.6;padding:0 16px;text-shadow:0 1px 6px #000}
+.hint b{color:var(--ink)}
+.bot{position:fixed;left:0;right:0;bottom:0;padding:12px 12px calc(14px + env(safe-area-inset-bottom,0px));display:flex;gap:8px;justify-content:center;align-items:center}
+button{font:inherit;font-weight:700;font-size:15px;color:var(--ink);background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px 14px;min-height:48px;backdrop-filter:blur(6px)}
+button.on{background:var(--acc);color:#0b2723;border-color:var(--acc)}
+button.gold{background:#f0b64a;color:#2a1c00;border-color:#f0b64a}
+button:disabled{opacity:.45}
+button:focus-visible,input:focus-visible{outline:3px solid var(--acc);outline-offset:2px}
+#act{flex:1;max-width:170px}
+.ov{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(8,10,14,.64);padding:16px;z-index:9}
+.ov.show{display:flex}
+.card{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:22px 22px;text-align:center;width:100%;max-width:340px;max-height:92vh;overflow:auto}
+.card h2{margin:0 0 6px;font-size:21px}
+.card p{margin:4px 0;color:var(--mute);font-size:14px}.card p b{color:var(--ink)}
+.card button{width:100%;margin-top:8px}
+.grade{font-size:56px;font-weight:700;line-height:1.1;color:#f0b64a}
+.pf{font-size:20px;margin:8px 0 10px}
+.shop{width:100%;max-width:460px;max-height:88vh;overflow:auto;background:var(--card);border:1px solid var(--line);border-radius:20px;padding:16px}
+.hd{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px}
+.tabs button{min-height:38px;padding:6px 11px;font-size:13px}
+.row{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:9px 0;border-top:1px solid var(--line)}
+.row small{display:block;color:var(--mute);font-size:12px;margin-top:2px}
+.row button{min-width:88px;min-height:42px;padding:8px 10px;font-size:14px}
+input{font:inherit;font-size:16px;color:var(--ink);background:#10151c;border:1px solid var(--line);border-radius:12px;padding:11px 12px;width:100%}
+#photoImg{width:100%;border-radius:12px;display:block}
+.ov{perspective:900px}
+.card,.shop{animation:pop .5s cubic-bezier(.2,.9,.3,1.15) backwards;transform-origin:50% 100%}
+@keyframes pop{from{opacity:0;transform:rotateX(-75deg) translateY(50px) scale(.9)}to{opacity:1;transform:none}}
+button{transition:transform .12s,box-shadow .12s,background .2s;box-shadow:0 4px 0 rgba(0,0,0,.4),inset 0 1px 0 rgba(255,255,255,.22)}
+button:active{transform:translateY(3px);box-shadow:0 1px 0 rgba(0,0,0,.4)}
+.bot{perspective:600px}
+.bot button{animation:bin .7s cubic-bezier(.2,.9,.3,1.2) backwards}
+.bot button:nth-child(2){animation-delay:.07s}.bot button:nth-child(3){animation-delay:.14s}.bot button:nth-child(4){animation-delay:.21s}
+@keyframes bin{from{opacity:0;transform:rotateX(70deg) translateY(40px)}to{opacity:1;transform:none}}
+.bar i{background:linear-gradient(90deg,var(--acc),#a8f5ea,var(--acc));background-size:200% 100%;animation:sh 2.2s linear infinite}
+@keyframes sh{to{background-position:-200% 0}}
+.grade{animation:gr 1s cubic-bezier(.2,.9,.3,1.3) .15s backwards}
+@keyframes gr{from{opacity:0;transform:perspective(500px) rotateY(540deg) scale(.3)}to{opacity:1;transform:none}}
+.row.ani{animation:rowin .45s cubic-bezier(.2,.9,.3,1.1) backwards;transform-origin:50% 0}
+@keyframes rowin{from{opacity:0;transform:perspective(500px) rotateX(-70deg)}to{opacity:1;transform:none}}
+.shop{perspective:700px}
+.sc{width:34px;height:34px;perspective:240px}
+.cube{position:relative;width:34px;height:34px;transform-style:preserve-3d;animation:cs 8s linear infinite}
+.cube i{position:absolute;inset:0;border:1px solid rgba(255,255,255,.55);background:linear-gradient(135deg,rgba(95,212,200,.6),rgba(130,150,255,.25))}
+.cube i:nth-child(1){transform:translateZ(17px)}.cube i:nth-child(2){transform:rotateY(90deg) translateZ(17px)}.cube i:nth-child(3){transform:rotateY(180deg) translateZ(17px)}.cube i:nth-child(4){transform:rotateY(-90deg) translateZ(17px)}.cube i:nth-child(5){transform:rotateX(90deg) translateZ(17px)}.cube i:nth-child(6){transform:rotateX(-90deg) translateZ(17px)}
+@keyframes cs{to{transform:rotateX(360deg) rotateY(360deg)}}
+.tg{position:relative;height:18px;border-radius:9px;background:rgba(255,255,255,.12);margin:14px 0;overflow:hidden}
+.tg .zone{position:absolute;top:0;bottom:0;background:rgba(95,212,200,.5)}
+.tg .nd{position:absolute;top:0;bottom:0;width:5px;background:#fff;border-radius:3px;left:0}
+#act.ready{animation:rdy .9s ease-in-out infinite alternate}
+@keyframes rdy{from{box-shadow:0 4px 0 rgba(0,0,0,.4),0 0 0 rgba(240,182,74,0)}to{box-shadow:0 4px 0 rgba(0,0,0,.4),0 0 18px 4px rgba(240,182,74,.85)}}
+@media (prefers-reduced-motion:reduce){*{animation-duration:.01s!important;animation-iteration-count:1!important}}
+
+/* ===== Grand Atelier UI ===== */
+:root{--ink:#f6efe0;--mute:#b9ad94;--acc:#e8c872;--gold:#e8c872;--gold2:#b8892f;--gold3:#fff1bd;--panel:linear-gradient(180deg,rgba(40,34,26,.82),rgba(14,13,16,.86));--line:rgba(232,200,114,.38);--card:#14120f;
+--serif:"Shippori Mincho","Cormorant Garamond","Hiragino Mincho ProN","Yu Mincho",serif;--num:"Cormorant Garamond","Shippori Mincho",serif;
+--goldgrad:linear-gradient(180deg,#fff6cf 0%,#f0cf7c 38%,#b8892f 62%,#f3d98f 100%)}
+html,body{background:#0a0a0d}
+.vig{position:fixed;inset:0;pointer-events:none;z-index:1;background:radial-gradient(ellipse at 50% 42%,transparent 45%,rgba(4,3,6,.62) 100%),linear-gradient(180deg,rgba(0,0,0,.5),transparent 18%,transparent 76%,rgba(0,0,0,.6))}
+.vig::before{content:"";position:absolute;inset:max(8px,env(safe-area-inset-top,0px)) 8px max(8px,env(safe-area-inset-bottom,0px));border:1px solid rgba(232,200,114,.28);border-radius:22px;box-shadow:inset 0 0 40px rgba(232,200,114,.07)}
+.vig i{position:absolute;width:26px;height:26px;border:2px solid var(--gold);opacity:.85;filter:drop-shadow(0 0 5px rgba(232,200,114,.6))}
+.vig i:nth-child(1){left:12px;top:calc(12px + env(safe-area-inset-top,0px));border-right:0;border-bottom:0;border-top-left-radius:18px}
+.vig i:nth-child(2){right:12px;top:calc(12px + env(safe-area-inset-top,0px));border-left:0;border-bottom:0;border-top-right-radius:18px}
+.vig i:nth-child(3){left:12px;bottom:calc(12px + env(safe-area-inset-bottom,0px));border-right:0;border-top:0;border-bottom-left-radius:18px}
+.vig i:nth-child(4){right:12px;bottom:calc(12px + env(safe-area-inset-bottom,0px));border-left:0;border-top:0;border-bottom-right-radius:18px}
+.top,.hint,.bot{z-index:3}
+.top{padding:20px 22px 12px}
+.money{padding:7px 14px 8px;border:1px solid var(--line);border-radius:14px;background:var(--panel);backdrop-filter:blur(8px);box-shadow:0 6px 18px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,241,189,.25);font-size:11px;letter-spacing:.14em;color:var(--gold);font-family:var(--serif)}
+.money b{display:block;font-family:var(--num);font-size:24px;letter-spacing:.02em;line-height:1.1;background:var(--goldgrad);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 1px 0 rgba(0,0,0,.6))}
+.gauge{padding:8px 14px 10px;border:1px solid var(--line);border-radius:14px;background:var(--panel);backdrop-filter:blur(8px);box-shadow:0 6px 18px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,241,189,.25)}
+.lab{font-family:var(--serif);font-size:12px;letter-spacing:.14em;color:var(--gold)}
+.lab b{font-family:var(--num);font-size:26px;line-height:1;background:var(--goldgrad);-webkit-background-clip:text;background-clip:text;color:transparent}
+.bar{height:12px;border-radius:7px;background:rgba(0,0,0,.55);border:1px solid rgba(232,200,114,.35);box-shadow:inset 0 2px 4px rgba(0,0,0,.7);position:relative}
+.bar::after{content:"";position:absolute;inset:0;border-radius:7px;background:repeating-linear-gradient(90deg,transparent 0 calc(10% - 1px),rgba(0,0,0,.45) calc(10% - 1px) 10%);pointer-events:none}
+.bar i{background:linear-gradient(90deg,#8a5f1c,#e8c872,#fff6cf,#e8c872,#b8892f);background-size:200% 100%;box-shadow:0 0 12px rgba(232,200,114,.8)}
+.hint{font-family:var(--serif);font-size:14px;letter-spacing:.06em;color:#d9ccb0}
+.hint b{color:var(--gold3)}
+button{font-family:var(--serif);font-weight:700;letter-spacing:.1em;color:var(--ink);background:var(--panel);border:1px solid var(--line);border-radius:12px;box-shadow:0 5px 0 rgba(0,0,0,.55),0 10px 20px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,241,189,.28),inset 0 0 14px rgba(232,200,114,.06);position:relative;overflow:hidden}
+button::after{content:"";position:absolute;top:0;bottom:0;left:-60%;width:40%;background:linear-gradient(100deg,transparent,rgba(255,246,207,.35),transparent);transform:skewX(-20deg);transition:left .6s}
+button:hover::after{left:130%}
+button:active{box-shadow:0 1px 0 rgba(0,0,0,.55),inset 0 2px 6px rgba(0,0,0,.4)}
+button.on{background:linear-gradient(180deg,#fff1bd 0%,#e8c872 45%,#b8892f 100%);color:#2a1a02;border-color:#fff1bd;text-shadow:0 1px 0 rgba(255,255,255,.5)}
+button.gold{background:linear-gradient(180deg,#ffe9a0 0%,#f0b64a 48%,#a8701a 100%);color:#2a1700;border-color:#ffe9a0;text-shadow:0 1px 0 rgba(255,255,255,.45)}
+button:disabled{opacity:.4;filter:grayscale(.6)}
+button:focus-visible,input:focus-visible{outline:3px solid var(--gold3);outline-offset:2px}
+.bot{padding-bottom:calc(22px + env(safe-area-inset-bottom,0px))}
+@keyframes rdy{from{box-shadow:0 5px 0 rgba(0,0,0,.55),0 0 0 rgba(255,225,140,0)}to{box-shadow:0 5px 0 rgba(0,0,0,.55),0 0 26px 7px rgba(255,225,140,.95)}}
+.ov{background:radial-gradient(ellipse at 50% 40%,rgba(30,22,10,.55),rgba(3,2,5,.88));backdrop-filter:blur(7px)}
+.card,.shop{position:relative;background:linear-gradient(165deg,#241e15 0%,#14120f 38%,#0d0c10 100%);border:1px solid rgba(232,200,114,.7);border-radius:22px;box-shadow:0 0 0 5px rgba(10,9,8,.9),0 0 0 6px rgba(232,200,114,.35),0 30px 70px rgba(0,0,0,.75),0 0 60px rgba(232,200,114,.16),inset 0 1px 0 rgba(255,241,189,.35),inset 0 0 40px rgba(232,200,114,.06)}
+.card{padding:28px 22px 22px;max-width:350px}
+.shop{padding:20px 18px 16px;max-width:480px}
+.card::before,.shop::before{content:"";position:absolute;inset:7px;border:1px solid rgba(232,200,114,.22);border-radius:16px;pointer-events:none}
+.card h2{font-family:var(--serif);font-weight:800;font-size:22px;letter-spacing:.12em;margin:0 0 14px;padding-bottom:14px;background:var(--goldgrad);-webkit-background-clip:text;background-clip:text;color:transparent;position:relative}
+.card h2::after{content:"";position:absolute;left:18%;right:18%;bottom:0;height:9px;background:linear-gradient(90deg,transparent,var(--gold) 40%,transparent 48%) left center/100% 1px no-repeat,linear-gradient(90deg,transparent 52%,var(--gold) 60%,transparent) left center/100% 1px no-repeat;-webkit-mask:none}
+.card h2::before{content:"";position:absolute;left:50%;bottom:1px;width:7px;height:7px;margin-left:-3.5px;background:var(--gold);transform:rotate(45deg);box-shadow:0 0 8px var(--gold)}
+.card p{font-family:var(--serif);color:var(--mute);letter-spacing:.04em;line-height:1.7}
+.card p b{color:var(--gold3)}
+.card button{margin-top:10px}
+.grade{font-family:var(--num);font-size:92px;font-weight:700;line-height:1;margin:6px 0 4px;background:linear-gradient(180deg,#fffbe6 0%,#f6d77f 35%,#b8892f 60%,#ffe9a0 85%);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 0 18px rgba(232,200,114,.65)) drop-shadow(0 3px 0 rgba(0,0,0,.6))}
+.pf{font-family:var(--num);font-size:26px;font-weight:700;letter-spacing:.04em;color:var(--gold3);text-shadow:0 0 14px rgba(232,200,114,.55);margin:10px 0 12px;padding:6px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.hd{padding-bottom:10px;border-bottom:1px solid var(--line);margin-bottom:12px}
+.hd b{font-family:var(--serif);font-size:20px;letter-spacing:.14em;background:var(--goldgrad);-webkit-background-clip:text;background-clip:text;color:transparent}
+.hd>span{font-family:var(--num);font-size:22px;font-weight:700;color:var(--gold3);text-shadow:0 0 10px rgba(232,200,114,.5)}
+.tabs button{border-radius:999px;font-size:12px;letter-spacing:.08em;box-shadow:0 3px 0 rgba(0,0,0,.5),inset 0 1px 0 rgba(255,241,189,.22)}
+.row{border-top:1px solid rgba(232,200,114,.2);padding:11px 4px;font-family:var(--serif)}
+.row b{color:var(--ink);letter-spacing:.06em}
+.row small{color:var(--mute);letter-spacing:.03em}
+.row button{font-family:var(--num),var(--serif);font-size:15px}
+input{font-family:var(--serif);color:var(--gold3);background:rgba(0,0,0,.5);border:1px solid var(--line);border-radius:12px;letter-spacing:.08em;text-align:center;box-shadow:inset 0 2px 8px rgba(0,0,0,.6)}
+input::placeholder{color:#6f664f}
+#photoImg{border:1px solid var(--gold);box-shadow:0 0 0 4px #0d0c10,0 0 0 5px rgba(232,200,114,.5),0 10px 30px rgba(0,0,0,.6)}
+.tg{height:20px;border-radius:10px;background:rgba(0,0,0,.6);border:1px solid rgba(232,200,114,.4);box-shadow:inset 0 2px 5px rgba(0,0,0,.7)}
+.tg .zone{background:linear-gradient(90deg,rgba(184,137,47,.7),rgba(255,233,160,.95),rgba(184,137,47,.7));box-shadow:0 0 12px rgba(255,225,140,.8)}
+.tg .nd{background:#fff;box-shadow:0 0 10px #fff,0 0 20px var(--gold)}
+.cube i{border-color:rgba(255,241,189,.8);background:linear-gradient(135deg,rgba(232,200,114,.55),rgba(255,255,255,.15))}
+@keyframes gr{0%{opacity:0;transform:perspective(500px) rotateY(540deg) scale(.3)}100%{opacity:1;transform:none}}
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-thumb{background:rgba(232,200,114,.45);border-radius:3px}
+
+.qbtn{position:fixed;right:16px;bottom:calc(104px + env(safe-area-inset-bottom,0px));z-index:4;width:64px;height:64px;min-height:0;padding:0;border-radius:18px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:10px;letter-spacing:.04em;overflow:visible;color:var(--gold3)}
+.qbtn::after{display:none}.qbtn svg{width:26px;height:26px;filter:drop-shadow(0 0 5px rgba(232,200,114,.7))}
+.qbtn em{position:absolute;top:-7px;right:-7px;min-width:22px;height:22px;padding:0 5px;border-radius:11px;background:#e0334f;color:#fff;font:700 13px/22px var(--num);text-align:center;font-style:normal;box-shadow:0 0 12px rgba(224,51,79,.9);display:none;animation:bdg .9s ease-in-out infinite alternate}
+@keyframes bdg{to{transform:scale(1.18)}}
+.toast{position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 104px);transform:translate(-50%,-26px);opacity:0;z-index:30;pointer-events:none;padding:10px 24px;border:1px solid var(--gold);border-radius:14px;background:linear-gradient(180deg,rgba(60,48,22,.96),rgba(16,13,10,.96));box-shadow:0 10px 30px rgba(0,0,0,.6),0 0 26px rgba(232,200,114,.45);text-align:center;font-family:var(--serif);transition:opacity .35s,transform .45s cubic-bezier(.2,.9,.3,1.3);max-width:88vw}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+.toast small{display:block;color:var(--gold);letter-spacing:.2em;font-size:11px}.toast b{color:var(--gold3);font-size:15px;letter-spacing:.06em}
+.qrank{display:flex;gap:14px;align-items:center;padding:10px 12px;margin-bottom:10px;border:1px solid var(--line);border-radius:14px;background:rgba(232,200,114,.07);font-family:var(--serif)}
+.qrank small{display:block;color:var(--mute);font-size:11px;letter-spacing:.06em;margin-bottom:3px}
+.qrank>div:first-child b{display:block;font-size:17px;white-space:nowrap;background:var(--goldgrad);-webkit-background-clip:text;background-clip:text;color:transparent}
+.qrank .qr2{flex:1;min-width:0}
+.row.q{align-items:flex-start}.row.q>button{align-self:center;min-width:92px}.row.qdone{opacity:.5}
+.pip{color:var(--gold);font-size:11px;margin-left:8px;letter-spacing:2px}
+.qbar{position:relative;height:15px;margin:6px 0 3px;border-radius:8px;background:rgba(0,0,0,.55);border:1px solid rgba(232,200,114,.3);overflow:hidden}
+.qbar i{display:block;height:100%;background:linear-gradient(90deg,#8a5f1c,#e8c872,#fff1bd);box-shadow:0 0 8px rgba(232,200,114,.7)}
+.qbar span{position:absolute;inset:0;text-align:center;font:700 10px/15px var(--num);letter-spacing:.06em;color:#fff;text-shadow:0 1px 2px #000}
+.qsec{font-family:var(--serif);color:var(--gold);font-size:13px;letter-spacing:.12em;margin:10px 0 2px}
+
+.ft{position:fixed;z-index:6;pointer-events:none;font-weight:800;white-space:nowrap;letter-spacing:.04em;transform:translate(-50%,-50%) rotate(var(--r,0deg));animation:ftf 1.6s cubic-bezier(.2,.8,.3,1) forwards}
+@keyframes ftf{0%{opacity:0;transform:translate(-50%,-10%) rotate(var(--r)) scale(.3)}16%{opacity:1;transform:translate(-50%,-60%) rotate(var(--r)) scale(1.3)}28%{transform:translate(-50%,-80%) rotate(var(--r)) scale(1)}100%{opacity:0;transform:translate(-50%,-330%) rotate(var(--r)) scale(1.05)}}
+.grade.sss{font-size:76px;letter-spacing:.02em;background:linear-gradient(100deg,#ff9aa8,#ffe08a,#9dffb8,#8fd8ff,#d9a5ff,#ff9aa8);background-size:250% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 0 22px rgba(255,255,255,.75)) drop-shadow(0 3px 0 rgba(0,0,0,.55));animation:gr 1s cubic-bezier(.2,.9,.3,1.3) .15s backwards,rbw 3s linear infinite}
+@keyframes rbw{to{background-position:-250% 0}}
+
+/* ===== layout fix: no overlap ===== */
+.top{padding:26px 36px 12px}
+.hint{top:var(--topb,150px)}
+.toast{top:calc(var(--topb,150px) + 8px)}
+.bot{padding:12px 34px calc(34px + env(safe-area-inset-bottom,0px));gap:7px}
+.bot button{padding:12px 11px;font-size:14px;letter-spacing:.06em}
+.qbtn{right:30px;bottom:calc(116px + env(safe-area-inset-bottom,0px))}
+.vig::before{inset:max(10px,env(safe-area-inset-top,0px)) 10px max(10px,env(safe-area-inset-bottom,0px))}
+.vig i{width:20px;height:20px}
+.vig i:nth-child(1){left:10px;top:calc(10px + env(safe-area-inset-top,0px))}
+.vig i:nth-child(2){right:10px;top:calc(10px + env(safe-area-inset-top,0px))}
+.vig i:nth-child(3){left:10px;bottom:calc(10px + env(safe-area-inset-bottom,0px))}
+.vig i:nth-child(4){right:10px;bottom:calc(10px + env(safe-area-inset-bottom,0px))}
+/* ===== animation upgrade ===== */
+.money,.gauge{position:relative;overflow:hidden}
+.money{animation:dropin .9s cubic-bezier(.2,.9,.3,1.25) .1s backwards}
+.gauge{animation:dropin .9s cubic-bezier(.2,.9,.3,1.25) .25s backwards}
+@keyframes dropin{from{opacity:0;transform:translateY(-40px) scale(.9)}to{opacity:1;transform:none}}
+.money::after,.gauge::after{content:"";position:absolute;top:0;bottom:0;left:-70%;width:45%;background:linear-gradient(100deg,transparent,rgba(255,241,189,.3),transparent);transform:skewX(-20deg);animation:psw 7s ease-in-out 1.4s infinite;pointer-events:none}
+@keyframes psw{0%{left:-70%}20%,100%{left:150%}}
+.money b.up{animation:mup .7s cubic-bezier(.2,.9,.3,1.3)}
+.money b.dn{animation:mdn .6s ease-out}
+@keyframes mup{0%{transform:scale(1)}25%{transform:scale(1.28);filter:brightness(1.7) drop-shadow(0 0 12px #ffe08a)}100%{transform:none}}
+@keyframes mdn{0%{transform:scale(1)}25%{transform:scale(.9);filter:brightness(.7)}100%{transform:none}}
+.money b{transform-origin:left center}
+.gauge.pop{animation:gpop .6s cubic-bezier(.2,.9,.3,1.4)}
+@keyframes gpop{0%{transform:none}30%{transform:scale(1.06);box-shadow:0 0 30px rgba(232,200,114,.8),0 6px 18px rgba(0,0,0,.45)}100%{transform:none}}
+.bar i{transition:width .35s cubic-bezier(.2,.8,.3,1)}
+#bar.full{animation:sh 1s linear infinite,fullp .7s ease-in-out infinite alternate;filter:brightness(1.2)}
+@keyframes fullp{from{box-shadow:0 0 10px rgba(232,200,114,.7)}to{box-shadow:0 0 26px 4px rgba(255,241,189,.95)}}
+.hint.chg{animation:hin .5s cubic-bezier(.2,.8,.3,1)}
+@keyframes hin{from{opacity:0;transform:translateY(8px);letter-spacing:.2em}to{opacity:1;transform:none}}
+button::before{content:"";position:absolute;left:var(--rx,50%);top:var(--ry,50%);width:10px;height:10px;margin:-5px 0 0 -5px;border-radius:50%;background:rgba(255,241,189,.6);transform:scale(0);opacity:0;pointer-events:none}
+button.rip::before{animation:rip .6s ease-out}
+@keyframes rip{from{transform:scale(0);opacity:.8}to{transform:scale(30);opacity:0}}
+.qbtn::before{display:none}
+button.on{animation:onpop .45s cubic-bezier(.2,.9,.3,1.4)}
+@keyframes onpop{0%{transform:scale(.92)}55%{transform:scale(1.08)}100%{transform:none}}
+.qbtn.has{animation:qpul 1.5s ease-in-out infinite}
+@keyframes qpul{0%,100%{box-shadow:0 5px 0 rgba(0,0,0,.55),0 0 0 rgba(232,200,114,0)}50%{box-shadow:0 5px 0 rgba(0,0,0,.55),0 0 24px 5px rgba(232,200,114,.8)}}
+.ov.show{animation:ovin .35s ease-out}
+@keyframes ovin{from{opacity:0}to{opacity:1}}
+.card::after,.shop::after{content:"";position:absolute;inset:0;border-radius:inherit;background:linear-gradient(110deg,transparent 35%,rgba(255,241,189,.24) 50%,transparent 65%);background-size:250% 100%;background-position:150% 0;pointer-events:none;animation:csw 1.2s ease-out .35s 1 forwards}
+@keyframes csw{to{background-position:-60% 0}}
+.card h2{animation:h2in .9s cubic-bezier(.2,.8,.3,1) .2s backwards}
+@keyframes h2in{from{opacity:0;letter-spacing:.45em;filter:blur(6px)}to{opacity:1;filter:none}}
+.vig i{animation:cg 3.5s ease-in-out infinite alternate}
+@keyframes cg{from{opacity:.55}to{opacity:1;filter:drop-shadow(0 0 9px rgba(255,225,140,.95))}}
+.sp{position:fixed;z-index:40;pointer-events:none;width:var(--s);height:var(--s);background:#fff;box-shadow:0 0 8px currentColor;animation:spk 1s cubic-bezier(.15,.7,.3,1) forwards}
+@keyframes spk{0%{opacity:1;transform:translate(-50%,-50%) rotate(45deg) scale(1)}100%{opacity:0;transform:translate(calc(-50% + var(--dx)),calc(-50% + var(--dy) + 50px)) rotate(225deg) scale(.2)}}
+
+/* ===== dialog scroll fix: scroll the overlay, not the framed card ===== */
+.ov{overflow-y:auto;overflow-x:hidden;align-items:flex-start;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding:max(16px,env(safe-area-inset-top,0px)) 16px max(16px,env(safe-area-inset-bottom,0px))}
+.card,.shop{margin:auto;max-height:none;overflow:visible;flex-shrink:0}
+.row>div:first-child{min-width:0;flex:1}
+.row>button{white-space:nowrap;flex-shrink:0;letter-spacing:.04em;padding:8px 12px}
+.row button:disabled{font-size:13px}
+
+.shop::after{content:none}
+@keyframes csw{0%{background-position:150% 0;opacity:1}80%{opacity:1}100%{background-position:-60% 0;opacity:0}}
+.qbtn.revbtn{bottom:calc(190px + env(safe-area-inset-bottom,0px));font-size:10px}
+.qbtn.revbtn.on{border-color:#ffd76a;color:#fff6cf;box-shadow:0 0 22px rgba(255,215,106,.85),inset 0 0 14px rgba(255,215,106,.35)}
+.qbtn.revbtn.on svg{filter:drop-shadow(0 0 8px rgba(255,230,140,1))}
+.qbtn.idxbtn{bottom:calc(264px + env(safe-area-inset-bottom,0px));font-size:10px}
+</style>
+<style id="cxcss">
+#menu{position:relative}#menu.hit{animation:shk .16s}@keyframes shk{25%{transform:translate(-3px,2px)}75%{transform:translate(3px,-2px)}}
+#menu .tg{height:26px;border-color:#ffe9a0}#menu .tg .nd{height:150%;top:-25%;width:6px;animation:ndg .5s ease-in-out infinite alternate}
+@keyframes ndg{to{filter:brightness(1.8)}}#menu .tg .zone{animation:zp .7s ease-in-out infinite alternate}
+@keyframes zp{to{filter:brightness(1.5);box-shadow:0 0 24px rgba(255,225,140,1)}}
+#menu canvas{border-radius:50%;background:radial-gradient(circle,rgba(232,200,114,.2),rgba(0,0,0,.5) 70%);box-shadow:0 0 30px rgba(232,200,114,.35),inset 0 0 24px rgba(0,0,0,.6);animation:cvp 2s ease-in-out infinite alternate}
+@keyframes cvp{to{box-shadow:0 0 52px rgba(255,225,140,.7),inset 0 0 24px rgba(0,0,0,.6)}}
+#menu #hold,#menu #tap,#menu #grind,#menu #mb,#menu #tp,#menu #pl,#menu #pr,#menu #bl,#menu #br{min-height:68px;font-size:19px;animation:rdy .8s ease-in-out infinite alternate}
+#menu button[id^=pd]{border-radius:18px;box-shadow:0 0 20px currentColor,0 5px 0 rgba(0,0,0,.5)}#menu .bar i{box-shadow:0 0 18px rgba(255,225,140,.95)}
+.cx-head{display:flex;align-items:center;gap:14px;margin-bottom:10px}
+.cx-ring{width:64px;height:64px;border-radius:50%;display:grid;place-items:center;position:relative;background:conic-gradient(var(--gold) calc(var(--p)*1%),rgba(255,255,255,.1) 0);box-shadow:0 0 20px rgba(232,200,114,.45);animation:cxs 1.2s cubic-bezier(.2,.9,.3,1) backwards}
+.cx-ring::before{content:"";position:absolute;inset:6px;border-radius:50%;background:#14120f}.cx-ring b{position:relative;font:700 20px var(--num);color:var(--gold3)}.cx-ring small{font-size:11px}
+@keyframes cxs{from{transform:rotate(-180deg) scale(.3);opacity:0}}
+.cx-t{font:800 22px var(--serif);letter-spacing:.14em;background:var(--goldgrad);-webkit-background-clip:text;background-clip:text;color:transparent}.cx-s{font:12px var(--serif);color:var(--mute);letter-spacing:.1em}
+.cx-tabs{display:flex;gap:6px;overflow-x:auto;padding:4px 2px 10px}.cx-tabs button{min-height:34px;padding:4px 11px;font-size:12px;border-radius:999px;white-space:nowrap}
+.cx-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.cx-card{position:relative;overflow:hidden;text-align:center;padding:14px 8px 12px;border-radius:16px;border:1px solid var(--rc);cursor:pointer;font-family:var(--serif);background:radial-gradient(ellipse at 50% 0,rgba(var(--gc),.3),rgba(14,13,16,.92) 72%);box-shadow:0 0 14px color-mix(in srgb,var(--rc) 35%,transparent),inset 0 1px 0 rgba(255,241,189,.2);animation:cxin .6s cubic-bezier(.2,.9,.3,1.2) backwards;animation-delay:calc(var(--i)*40ms);transition:transform .2s}
+.cx-card:active{transform:scale(.96)}.cx-card::after{content:"";position:absolute;top:0;bottom:0;left:-70%;width:40%;background:linear-gradient(100deg,transparent,rgba(255,246,207,.3),transparent);transform:skewX(-20deg);animation:psw 5s ease-in-out calc(var(--i)*.2s) infinite;pointer-events:none}
+.cx-card b{display:block;font-size:14px;letter-spacing:.06em;margin-top:6px}.cx-card em{font-style:normal;font-size:11px;color:var(--rc);letter-spacing:.14em}.cx-card small{display:block;font-size:11px;color:var(--mute);margin-top:2px;min-height:14px}
+.cx-orb{width:58px;height:58px;margin:0 auto;border-radius:50%;display:grid;place-items:center;background:radial-gradient(circle at 32% 28%,#fff 0,rgb(var(--gc)) 38%,rgba(0,0,0,.65) 100%);box-shadow:0 0 22px rgba(var(--gc),.7);animation:cxf 3s ease-in-out infinite alternate;animation-delay:calc(var(--i)*-.4s)}
+.cx-orb span{font:700 24px var(--serif);color:#6f664f}.cx-card.lk{filter:saturate(.3);opacity:.7;border-color:rgba(255,255,255,.15);box-shadow:none}.cx-card.lk .cx-orb{background:#242220;box-shadow:inset 0 0 14px #000}
+@keyframes cxf{to{transform:translateY(-5px)}}@keyframes cxin{from{opacity:0;transform:perspective(500px) rotateX(-60deg) translateY(30px) scale(.85)}}
+.cx-card.shk{animation:cxsh .4s}@keyframes cxsh{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.cx-det{animation:cxin .5s backwards}.cx-stage{position:relative;height:270px;border-radius:18px;overflow:hidden;border:1px solid var(--rc);background:radial-gradient(ellipse at 50% 55%,rgba(var(--gc),.4),rgba(8,7,10,.95) 72%);box-shadow:0 0 30px color-mix(in srgb,var(--rc) 40%,transparent),inset 0 0 40px rgba(0,0,0,.6)}
+#cxcv{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none}#menu canvas{position:relative;inset:auto}.cx-rar{position:absolute;left:12px;top:10px;padding:3px 12px;border:1px solid var(--rc);border-radius:999px;font:700 12px var(--serif);letter-spacing:.16em;color:var(--rc);background:rgba(0,0,0,.5)}
+.cx-sub{position:absolute;top:6px;right:6px;text-decoration:none;font:700 10px var(--serif);letter-spacing:.1em;padding:1px 7px;border-radius:999px;color:#1a1408;background:linear-gradient(135deg,#ffe9a8,#d8a94a);box-shadow:0 0 8px rgba(232,200,114,.5)}
+.cx-s2{margin-top:2px;color:#e8c872}
+.cx-subl{display:flex;justify-content:center;align-items:center;gap:8px;margin:-2px 0 8px;font:12px var(--serif);color:var(--mute);letter-spacing:.1em}.cx-subl .cx-sub{position:static}
+.cx-vars{display:flex;flex-wrap:wrap;justify-content:center;gap:6px;margin:0 0 10px;font-family:var(--serif)}.cx-vars small{width:100%;text-align:center;font-size:11px;color:#e8c872;letter-spacing:.14em}.cx-vars span{font-size:11px;padding:2px 9px;border-radius:999px;border:1px solid rgba(232,200,114,.5);color:#ffe9a8;background:rgba(0,0,0,.35)}.cx-vars span.lk{color:#6f664f;border-color:rgba(255,255,255,.15)}
+.cx-tabs button{flex:none}.cx-card.sb{padding-top:26px}.cx-card.sb .cx-sub{top:7px;right:50%;transform:translateX(50%);font-size:10px;line-height:1.5;white-space:nowrap}
+.cx-card b,.cx-card em,.cx-card small{overflow-wrap:anywhere;line-height:1.35}
+.cx-head .cx-s{line-height:1.4}.cx-subl{flex-wrap:wrap;line-height:1.5}.cx-vars span{white-space:nowrap}
+#resC{position:relative}
+.stamp-w{position:absolute;top:64px;right:8px;z-index:3;transform:rotate(-12deg);text-align:center;pointer-events:none}.stamp-sub{display:inline-block;padding:3px 12px 3px 16px;border:3px double #ff5a4a;border-radius:8px;color:#ff5a4a;font:900 22px var(--serif);letter-spacing:.2em;line-height:1.3;background:rgba(255,90,74,.1);text-shadow:0 0 6px rgba(255,90,74,.5);box-shadow:0 0 12px rgba(255,90,74,.35),inset 0 0 8px rgba(255,90,74,.25);pointer-events:none;animation:stampin .5s cubic-bezier(.2,1.5,.4,1) .45s backwards}.stamp-par{margin-top:4px;font:700 12px var(--serif);letter-spacing:.06em;color:#ff7a6a;text-shadow:0 0 6px rgba(255,90,74,.5);animation:stampfade .4s ease .8s backwards}
+@keyframes stampin{0%{transform:scale(3.2);opacity:0}55%{opacity:1}100%{transform:scale(1);opacity:1}}@keyframes stampfade{from{opacity:0}to{opacity:1}}
+.cx-name{text-align:center;margin:14px 0 8px;font:800 26px var(--serif);letter-spacing:.14em;background:var(--goldgrad);-webkit-background-clip:text;background-clip:text;color:transparent}
+.cx-bars{display:grid;gap:7px;margin:8px 4px}.cx-b{display:flex;align-items:center;gap:10px;font:12px var(--serif);color:var(--mute)}.cx-b span{width:52px;letter-spacing:.1em}
+.cx-b i{flex:1;height:8px;border-radius:5px;background:rgba(0,0,0,.55);border:1px solid rgba(232,200,114,.3);overflow:hidden}.cx-b u{display:block;height:100%;width:var(--w);border-radius:5px;background:linear-gradient(90deg,#8a5f1c,#e8c872,#fff6cf);animation:cxw 1s cubic-bezier(.2,.8,.3,1) backwards;animation-delay:calc(var(--d) + .3s)}
+@keyframes cxw{from{width:0}}.cx-info{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:12px 0 6px}.cx-info div{text-align:center;padding:8px 4px;border:1px solid var(--line);border-radius:12px;background:rgba(232,200,114,.06)}
+.cx2{grid-template-columns:repeat(2,1fr)!important}.wt{font-size:12px;letter-spacing:.06em;color:#bfe7ff}
+.cx-info small{display:block;font-size:10px;color:var(--mute);letter-spacing:.12em}.cx-info b{font:700 16px var(--num);color:var(--gold3)}.cx-hint{text-align:center;font-size:11px;color:var(--mute);margin:4px 0 8px}
+</style>
+<style id="fxcss">
+body.focus{background:radial-gradient(ellipse 80% 50% at 50% 28%,#16303a,#07090d 75%)!important}
+body.focus #c,body.focus #cut2,body.focus .vig,body.focus .top,body.focus .hint,body.focus .bot,body.focus .qbtn,body.focus .toast,body.focus .ft,body.focus .sp{display:none!important}
+body.focus *{backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
+body.focus .ov{animation:none!important;background:transparent!important}
+body.focus #menu{animation:none!important;background:#10131a;box-shadow:0 0 0 1px rgba(232,200,114,.5),0 0 40px rgba(95,212,200,.12);max-width:380px}
+body.focus #menu::before,body.focus #menu::after,body.focus #menu button::before,body.focus #menu button::after{display:none!important}
+body.focus #menu button{animation:none!important;transition:none!important}
+</style>
+<style id="invcss">
+.bot{padding-left:10px;padding-right:10px;gap:5px}
+.bot button{padding:12px 7px;font-size:13px;letter-spacing:.02em;white-space:nowrap}
+#invB{color:var(--gold3)}
+.iv-up{color:#6ee7a1}.iv-dn{color:#ff7a8a}
+.iv-note{font-size:11px!important;line-height:1.5;margin:6px 0 10px!important}
+.inv{max-width:480px}
+.iv-sum{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:6px 0 8px}
+.iv-sum div{padding:9px 8px;border:1px solid var(--line);border-radius:14px;background:rgba(232,200,114,.06);text-align:center}
+.iv-sum small{display:block;font-size:10px;color:var(--mute);letter-spacing:.08em}
+.iv-sum b{font:700 19px var(--num);color:var(--gold3)}
+.iv-card{position:relative;display:grid;grid-template-columns:44px 1fr auto;gap:2px 10px;align-items:center;padding:10px 12px;margin:8px 0;border:1px solid rgba(232,200,114,.28);border-radius:16px;background:linear-gradient(160deg,rgba(255,241,189,.07),rgba(255,255,255,.02));cursor:pointer;overflow:hidden;animation:ivin .5s cubic-bezier(.2,.9,.3,1.2) backwards;animation-delay:calc(var(--i)*70ms)}
+.noan .iv-card{animation:none}
+.iv-card::before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 12% 30%,rgba(var(--gc),.22),transparent 55%);pointer-events:none}
+.iv-card:active{transform:scale(.985)}
+@keyframes ivin{from{opacity:0;transform:translateY(18px) rotateX(-40deg)}to{opacity:1;transform:none}}
+.iv-orb{width:44px;height:44px;border-radius:50%;background:radial-gradient(circle at 32% 28%,#fff,rgba(var(--gc),1) 45%,rgba(var(--gc),.35) 100%);box-shadow:0 0 14px rgba(var(--gc),.7),inset 0 -6px 10px rgba(0,0,0,.35);animation:ivfl 3s ease-in-out infinite}
+@keyframes ivfl{50%{transform:translateY(-3px)}}
+.iv-mid{min-width:0;position:relative}.iv-mid b{display:block;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.iv-mid small{display:block;font-size:11px;color:var(--mute)}
+.iv-cd{height:3px;border-radius:2px;background:rgba(255,255,255,.1);margin-top:5px;overflow:hidden}
+.iv-cd i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--gold2),var(--gold3));transition:width 1s linear}
+.iv-r{text-align:right;position:relative}.iv-r b{display:block;font:700 18px var(--num);color:var(--gold3)}.iv-r em{font-style:normal;font-size:12px;font-weight:700}
+.iv-sp{grid-column:1/-1;position:relative}
+.iv-empty{margin:8px 0;padding:16px;text-align:center;border:1px dashed rgba(232,200,114,.3);border-radius:16px;color:var(--mute);font-size:12px}
+.ivsvg{display:block;width:100%;height:auto}
+.ivsvg text{fill:#9aabc0;font-size:9px;font-family:var(--num)}
+.an .ln{stroke-dasharray:1;stroke-dashoffset:1;animation:ivdr 1.4s ease forwards}
+.an .ar{opacity:0;animation:ivfd 1s .8s forwards}
+@keyframes ivdr{to{stroke-dashoffset:0}}@keyframes ivfd{to{opacity:1}}
+.ivsvg .dot{animation:ivpl 1.4s ease-in-out infinite;transform-box:fill-box;transform-origin:center}
+@keyframes ivpl{50%{transform:scale(1.8);opacity:.5}}
+.iv-stage{position:relative;height:290px;border-radius:18px;overflow:hidden;border:1px solid rgba(232,200,114,.4);background:radial-gradient(ellipse at 50% 45%,rgba(var(--gc),.32),rgba(8,7,10,.96) 72%);animation:ivin .5s backwards}
+.iv-stage canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
+.iv-tag{position:absolute;left:10px;top:10px;font-size:11px;font-weight:700;padding:3px 9px;border-radius:10px;border:1px solid currentColor;background:rgba(0,0,0,.4)}
+.iv-hint{position:absolute;left:0;right:0;bottom:6px;text-align:center;font-size:10px;color:var(--mute);pointer-events:none}
+.iv-name{text-align:center;font:700 20px var(--serif);margin:10px 0 0}.iv-sub{text-align:center;font-size:12px;color:var(--mute);margin-bottom:6px}
+.iv-big{display:flex;align-items:center;justify-content:center;gap:12px;margin:6px 0}
+.iv-big>div{text-align:center}.iv-big small{display:block;font-size:10px;color:var(--mute);letter-spacing:.1em}
+.iv-big b{display:block;font:700 34px/1.1 var(--num);color:var(--gold3);text-shadow:0 0 18px rgba(232,200,114,.5)}
+.iv-big b.fl{animation:ivfl2 .8s ease-out}@keyframes ivfl2{0%{transform:scale(1.18)}100%{transform:none}}
+.iv-chg{font-size:13px;font-weight:700}
+.iv-ring{position:relative;width:46px;height:46px;flex:none}.iv-ring svg{width:46px;height:46px;transform:rotate(-90deg)}
+.iv-ring circle{fill:none;stroke-width:4}.iv-ring .bg{stroke:rgba(255,255,255,.12)}.iv-ring .fg{stroke:var(--gold);stroke-linecap:round;stroke-dasharray:119.4;transition:stroke-dashoffset 1s linear}
+.iv-ring span{position:absolute;inset:0;display:grid;place-items:center;font:700 11px var(--num);color:var(--gold3)}
+.iv-chart{margin:6px 0 4px;padding:6px 6px 2px;border:1px solid var(--line);border-radius:14px;background:rgba(0,0,0,.25)}
+.iv-g{margin:8px 2px}.iv-gt{position:relative;height:8px;border-radius:4px;background:linear-gradient(90deg,#ff7a8a,#ffd76a 50%,#6ee7a1)}
+.iv-gt i{position:absolute;top:-5px;width:4px;height:18px;margin-left:-2px;border-radius:2px;background:#fff;box-shadow:0 0 10px #fff;transition:left 1s cubic-bezier(.2,.9,.3,1.1)}
+.iv-gl{display:flex;justify-content:space-between;font-size:10px;color:var(--mute);margin-top:7px}
+.iv-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0}
+.iv-t{padding:8px 10px;border:1px solid var(--line);border-radius:12px;background:rgba(232,200,114,.05);animation:ivin .5s cubic-bezier(.2,.9,.3,1.2) backwards;animation-delay:calc(var(--i)*40ms)}
+.noan .iv-t{animation:none}
+.iv-t small{display:block;font-size:10px;color:var(--mute);letter-spacing:.06em}.iv-t b{font:700 15px var(--num);color:var(--gold3)}
+.iv-t b.iv-up{color:#6ee7a1}.iv-t b.iv-dn{color:#ff7a8a}
+.inv>button,.iv-det>button{width:100%;margin-top:8px}
+
+</style>
+<style id="upg">
+:root{--gold2:#ffe9a8;--gold3:#c9993a;--ruby:#ff6b8b;--sap:#6aa8ff;--glass:linear-gradient(160deg,rgba(40,48,66,.78),rgba(14,18,26,.86));--edge:linear-gradient(135deg,rgba(255,236,170,.75),rgba(255,255,255,.08) 30%,rgba(95,212,200,.35) 60%,rgba(255,236,170,.6))}
+body{background:radial-gradient(120% 90% at 50% 0%,#1d2740 0%,#0e121b 60%,#07090d 100%)}
+/* ambient gem dust */
+#dust{position:fixed;inset:0;pointer-events:none;z-index:1;overflow:hidden}
+#dust i{position:absolute;bottom:-10px;width:var(--s);height:var(--s);background:radial-gradient(circle,#fff 0,rgba(255,236,170,.8) 35%,transparent 70%);border-radius:50%;opacity:0;animation:dust var(--d) linear var(--w) infinite}
+@keyframes dust{0%{transform:translate(0,0) scale(.4);opacity:0}15%{opacity:.7}85%{opacity:.35}100%{transform:translate(var(--x),-108vh) scale(1);opacity:0}}
+/* HUD glass with faceted edge */
+.money,.gauge{background:var(--glass)!important;border:1px solid transparent!important;background-clip:padding-box;position:relative;box-shadow:0 10px 28px rgba(0,0,0,.55),0 0 0 1px rgba(255,236,170,.12),inset 0 1px 0 rgba(255,255,255,.2)!important}
+.money::before,.gauge::before{content:"";position:absolute;inset:-1px;border-radius:inherit;padding:1px;background:var(--edge);-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none}
+.money b{background:linear-gradient(180deg,#fff7d6,var(--gold2) 40%,var(--gold3));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;font-family:"Cormorant Garamond",serif;font-size:24px;letter-spacing:.02em;filter:drop-shadow(0 1px 6px rgba(240,182,74,.45))}
+.lab b{font-family:"Cormorant Garamond",serif;font-size:26px;color:#fff;text-shadow:0 0 14px rgba(95,212,200,.7)}
+.bar{height:12px!important;background:rgba(0,0,0,.45)!important;box-shadow:inset 0 2px 4px rgba(0,0,0,.6),0 0 0 1px rgba(255,255,255,.1)}
+.bar i{background:linear-gradient(90deg,#2fb3a6,#5fd4c8,#fff2b8,#5fd4c8,#2fb3a6)!important;background-size:240% 100%!important;box-shadow:0 0 14px rgba(95,212,200,.85)}
+/* buttons: cut-gem look */
+button{border-radius:16px!important;background:var(--glass);letter-spacing:.03em;border:1px solid rgba(255,236,170,.28)!important;box-shadow:0 5px 0 rgba(0,0,0,.5),0 10px 22px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.3),inset 0 -10px 18px rgba(0,0,0,.25)}
+button.on{background:linear-gradient(180deg,#8cf0e4,#3fc2b4 55%,#2a9a8e)!important;box-shadow:0 5px 0 #17564f,0 0 26px rgba(95,212,200,.55),inset 0 1px 0 rgba(255,255,255,.6)!important}
+button.gold{background:linear-gradient(180deg,#ffe9a8,#f0b64a 55%,#c9893a)!important;box-shadow:0 5px 0 #7a5316,0 0 26px rgba(240,182,74,.5),inset 0 1px 0 rgba(255,255,255,.7)!important}
+button:active{box-shadow:0 1px 0 rgba(0,0,0,.5)!important}
+.bot{background:linear-gradient(0deg,rgba(5,7,11,.85),transparent);padding-top:26px}
+/* modals: velvet case */
+.ov{background:radial-gradient(80% 60% at 50% 40%,rgba(40,52,84,.55),rgba(4,6,10,.88))!important;backdrop-filter:blur(7px)}
+.card,.shop{background:var(--glass)!important;border:1px solid transparent!important;box-shadow:0 30px 70px rgba(0,0,0,.7),0 0 60px rgba(95,212,200,.12),inset 0 1px 0 rgba(255,255,255,.18)!important;position:relative}
+.card .grade{text-shadow:0 0 30px rgba(240,182,74,.7),0 4px 0 rgba(0,0,0,.35);font-family:"Cormorant Garamond",serif;font-size:72px}
+.shop .hd b{font-family:"Shippori Mincho",serif;font-size:20px;background:linear-gradient(90deg,var(--gold2),#fff,var(--gold2));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.tabs button{border-radius:999px!important;padding:6px 14px!important}
+.row{margin:6px 0;padding:12px 12px!important;border:1px solid rgba(255,236,170,.16)!important;border-radius:14px;background:linear-gradient(135deg,rgba(255,255,255,.07),rgba(255,255,255,.015))}
+.row:active{background:rgba(95,212,200,.1)}
+.row b{color:#fff}
+input{border-radius:14px;background:rgba(0,0,0,.4);box-shadow:inset 0 2px 6px rgba(0,0,0,.5)}
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-thumb{background:linear-gradient(var(--gold2),var(--gold3));border-radius:6px}
+/* side buttons float like jewels */
+.qbtn{background:var(--glass)!important;border:1px solid rgba(255,236,170,.4)!important;box-shadow:0 8px 22px rgba(0,0,0,.55),0 0 18px rgba(255,236,170,.15),inset 0 1px 0 rgba(255,255,255,.3)!important}
+.toast{background:var(--glass)!important;border:1px solid rgba(255,236,170,.45)!important;box-shadow:0 12px 30px rgba(0,0,0,.6),0 0 24px rgba(240,182,74,.25)!important}
+.hint{font-family:"Shippori Mincho",serif;letter-spacing:.06em}
+/* cards in index / invest */
+.cx-card,.iv-card,.iv-sum div{border-color:rgba(255,236,170,.25)!important;background:linear-gradient(150deg,rgba(255,255,255,.09),rgba(255,255,255,.015))!important;box-shadow:0 8px 20px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,255,255,.15)}
+@media (prefers-reduced-motion:reduce){#dust{display:none}}
+</style>
+<style id="tutcss">
+#tutB{position:fixed;left:16px;bottom:calc(116px + env(safe-area-inset-bottom,0px));z-index:4;width:46px;height:46px;min-height:0;padding:0;border-radius:50%!important;font-family:"Cormorant Garamond",serif;font-size:24px;color:var(--gold2);background:var(--glass)!important;border:1px solid rgba(255,236,170,.45)!important;box-shadow:0 8px 20px rgba(0,0,0,.55),0 0 16px rgba(255,236,170,.18)!important}
+#tutW{position:fixed;inset:0;z-index:60;display:none;touch-action:none}
+#tutW.show{display:block}
+#tutH{position:fixed;border-radius:16px;border:2px solid var(--gold2);box-shadow:0 0 0 100vmax rgba(4,6,10,.78),0 0 26px rgba(255,233,168,.75),inset 0 0 18px rgba(255,233,168,.25);transition:all .35s cubic-bezier(.3,.9,.3,1);pointer-events:none}
+#tutH.pulse{animation:tutp 1.6s ease-in-out infinite}
+@keyframes tutp{50%{border-color:#fff;box-shadow:0 0 0 100vmax rgba(4,6,10,.78),0 0 42px rgba(95,212,200,.9),inset 0 0 22px rgba(255,233,168,.4)}}
+#tutC{position:fixed;width:min(92vw,330px);padding:16px 18px 14px;border-radius:20px;background:var(--glass);border:1px solid rgba(255,236,170,.5);box-shadow:0 22px 50px rgba(0,0,0,.7),0 0 40px rgba(95,212,200,.15);transition:top .35s,left .35s,bottom .35s}
+#tutC h3{margin:0 0 6px;font-family:"Shippori Mincho",serif;font-size:18px;background:linear-gradient(90deg,var(--gold2),#fff,var(--gold2));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+#tutC p{margin:0;font-size:14px;line-height:1.7;color:var(--ink)}
+#tutC .tf{display:flex;align-items:center;gap:8px;margin-top:12px}
+#tutC .dots{flex:1;display:flex;gap:4px;flex-wrap:wrap}
+#tutC .dots i{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.22)}
+#tutC .dots i.o{background:var(--gold2);box-shadow:0 0 8px var(--gold2)}
+#tutC button{min-height:40px;padding:6px 14px;font-size:14px}
+#tutC .sk{background:transparent!important;box-shadow:none!important;border-color:transparent!important;color:var(--mute);padding:6px 8px}
+@media (prefers-reduced-motion:reduce){#tutH,#tutC{transition:none}#tutH.pulse{animation:none}}
+</style>
+</head>
+<body>
+<canvas id="c"></canvas><canvas id="cut2"></canvas>
+<div class="vig"><i></i><i></i><i></i><i></i></div>
+<div class="top">
+  <div class="money">所持金<br><b id="money">¥0</b></div>
+  <div class="gauge"><div class="lab"><span id="gl">磨き度</span><b id="pct">0%</b></div><div class="bar"><i id="bar"></i></div></div>
+</div>
+<div class="hint" id="hint"></div>
+<button id="idxB" class="qbtn idxbtn" aria-label="図鑑"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M4 5a2 2 0 012-2h13v16H6a2 2 0 00-2 2z"/><path d="M4 19V5M9 8h6M9 12h6"/></svg>図鑑</button>
+<button id="revB" class="qbtn revbtn" aria-label="削り残し" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/><path d="M19 16l.8 2.2L22 19l-2.2.8L19 22l-.8-2.2L16 19l2.2-.8z"/></svg>削り残し</button>
+<button id="qB" class="qbtn" aria-label="クエスト"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M6 3h12l4 6-10 12L2 9z"/><path d="M2 9h20M9 3l3 6 3-6M12 21 9 9m3 12 3-12"/></svg>クエスト<em id="qBadge"></em></button>
+<div class="toast" id="qt"></div>
+<div class="bot">
+  <button id="mPol" class="on">磨く</button>
+  <button id="mRot">回す</button>
+  <button id="shopB">ショップ</button>
+  <button id="invB">インベスト</button>
+  <button id="act" class="gold">仕上げへ</button>
+</div>
+<div class="ov" id="menuO"><div class="card" id="menu"></div></div>
+<div class="ov" id="res"><div class="card" id="resC"></div></div>
+<div class="ov" id="idxO"><div class="shop" id="idx"></div></div>
+<div class="ov" id="shopO"><div class="shop" id="shop"></div></div>
+<div class="ov" id="invO"><div class="shop inv" id="inv"></div></div>
+<div class="ov" id="questO"><div class="shop" id="quest"></div></div>
+<div class="ov" id="photoO"><div class="card"><img id="photoImg" alt="作品の写真"><p>画像を長押しで保存、または共有できます</p><button id="photoX" class="on">閉じる</button></div></div>
+<div class="ov" id="nameO"><div class="card"><h2>Lapidary Studioへ<br>ようこそ</h2><p>職人の名前を入力してください</p><input id="nameIn" maxlength="12" placeholder="名前"><button id="nameOk" class="on">はじめる</button></div></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+addEventListener('error',e=>{let b=document.getElementById('errB');if(!b){b=document.createElement('div');b.id='errB';b.style.cssText='position:fixed;left:8px;right:8px;bottom:8px;z-index:99;background:#400;color:#fff;font:11px monospace;padding:8px;border-radius:8px;white-space:pre-wrap;max-height:30vh;overflow:auto';document.body.appendChild(b)}b.textContent+=(e.message||'')+' @'+(e.lineno||'')+'\n'});
+const STONES=[
+{n:'ただの石',c:[.36,.35,.34],r:[.4,.38,.36],base:40,hard:1.3,w:18,t:0,f:0,i:0,v:.3,s:0},
+{n:'水晶',c:[.82,.93,1],r:[.55,.54,.52],base:300,hard:1.2,w:24,t:.95,f:.9,i:.15,v:0,s:0},
+{n:'アメジスト',c:[.6,.3,.92],r:[.4,.36,.42],base:700,hard:1,w:18,t:.65,f:.9,i:.08,v:.25,s:0},
+{n:'ガーネット',c:[.78,.05,.13],r:[.38,.25,.24],base:1200,hard:.9,w:14,t:.5,f:.8,i:0,v:0,s:0},
+{n:'ムーンストーン',c:[.72,.82,1],r:[.5,.5,.52],base:1500,hard:.9,w:8,t:.45,f:0,i:.35,v:.6,s:0},
+{n:'翡翠',c:[.28,.7,.45],r:[.34,.4,.34],base:1900,hard:.8,w:9,t:.12,f:0,i:0,v:.5,s:0},
+{n:'オパール',c:[.85,.88,.95],r:[.5,.48,.46],base:2600,hard:.75,w:6,t:.3,f:0,i:.95,v:0,s:0},
+{n:'エメラルド',c:[.06,.72,.38],r:[.32,.4,.34],base:3200,hard:.7,w:5,t:.55,f:.7,i:0,v:.8,s:0},
+{n:'サファイア',c:[.08,.22,.9],r:[.3,.33,.42],base:4500,hard:.65,w:3,t:.6,f:.25,i:0,v:.1,s:1},
+{n:'ルビー',c:[.88,.04,.1],r:[.42,.28,.28],base:6500,hard:.6,w:2,t:.55,f:.8,i:0,v:.1,s:.6},
+{n:'ダイヤモンド',c:[.93,.97,1],r:[.5,.5,.5],base:12000,hard:.45,w:1.5,t:1,f:1,i:.25,v:0,s:0}];
+// extra stones: [name,color,base,weight,transparency,facet,iridescence,veins,star]
+STONES.push(...[["黒曜石",[0.1,0.1,0.12],90,14,0.1,0,0.1,0,0],["大理石",[0.92,0.92,0.9],70,13,0.05,0,0,0.8,0],["黄鉄鉱",[0.85,0.7,0.25],120,12,0,0,0.2,0.2,0],["蛍石",[0.5,0.85,0.7],160,12,0.75,0.7,0.15,0,0],["方解石",[0.95,0.8,0.5],140,11,0.6,0.5,0,0,0],["ローズクォーツ",[0.95,0.65,0.75],220,10,0.5,0.6,0,0.1,0.3],["虎目石",[0.72,0.46,0.12],260,10,0.05,0,0.3,0.5,0.5],["瑪瑙",[0.82,0.42,0.35],200,10,0.2,0,0.2,0.9,0],["孔雀石",[0.1,0.58,0.38],280,9,0,0,0,1,0],["琥珀",[0.95,0.65,0.15],400,8,0.6,0.2,0,0,0],["シトリン",[0.98,0.8,0.25],450,8,0.8,0.9,0,0,0],["ラピスラズリ",[0.1,0.2,0.68],600,7,0,0,0,0.6,0],["ターコイズ",[0.25,0.78,0.76],650,7,0.05,0,0,0.5,0],["ペリドット",[0.6,0.85,0.25],550,7,0.7,0.8,0,0,0],["ブルートパーズ",[0.35,0.7,0.98],800,6,0.9,0.9,0.1,0,0],["トルマリン",[0.85,0.3,0.55],900,6,0.65,0.8,0.35,0,0],["カーネリアン",[0.92,0.45,0.2],350,6,0.3,0.2,0,0.2,0],["アクアマリン",[0.55,0.9,0.95],950,5,0.85,0.8,0,0,0],["ロードクロサイト",[0.95,0.4,0.5],1300,5,0.3,0.2,0,0.8,0],["スピネル",[0.9,0.2,0.35],1800,4,0.7,0.9,0,0,0],["タンザナイト",[0.35,0.3,0.9],2200,4,0.7,0.9,0.3,0,0],["ジルコン",[0.5,0.8,0.95],1400,4,0.85,0.95,0.1,0,0],["ヘリオドール",[0.9,0.85,0.3],1000,4,0.75,0.85,0,0,0],["モルガナイト",[0.98,0.65,0.7],1700,3.5,0.7,0.8,0,0,0],["ラブラドライト",[0.35,0.45,0.55],1100,3.5,0.2,0,0.95,0.3,0],["真珠",[0.95,0.93,0.9],1600,3,0.1,0,0.85,0,0],["珊瑚",[0.95,0.45,0.4],1000,3,0,0,0,0.3,0],["パライバトルマリン",[0.1,0.85,0.95],7000,2.5,0.8,0.9,0.2,0,0],["インペリアルトパーズ",[0.98,0.6,0.3],3800,2.5,0.85,0.9,0.1,0,0],["ツァボライト",[0.2,0.75,0.3],4200,2,0.8,0.9,0,0,0],["デマントイド",[0.45,0.8,0.2],5000,2,0.8,1,0.4,0,0],["ブラックオパール",[0.08,0.12,0.22],5800,1.8,0.3,0,1,0,0],["ファイアオパール",[0.97,0.42,0.1],3400,1.8,0.5,0.3,0.5,0,0],["スフェーン",[0.7,0.85,0.2],3600,1.5,0.8,1,0.5,0,0],["カイヤナイト",[0.2,0.45,0.85],2500,1.5,0.5,0.4,0,0.4,0],["アレキサンドライト",[0.1,0.62,0.5],9000,1.2,0.6,0.8,0.6,0,0],["パパラチア",[1,0.55,0.4],15000,0.8,0.75,0.9,0,0,0.2],["レッドベリル",[0.85,0.1,0.2],18000,0.6,0.7,0.9,0,0,0],["ピンクダイヤ",[0.98,0.6,0.8],22000,0.5,1,1,0.2,0,0],["ブルーダイヤ",[0.5,0.75,1],26000,0.4,1,1,0.2,0,0],["ペインタイト",[0.55,0.1,0.12],40000,0.3,0.6,0.9,0,0,0.3]].map(a=>({n:a[0],c:a[1],r:a[1].map(x=>x*.45+.14),base:a[2],hard:Math.max(.45,1.3-.4*Math.log10(a[2]/40)),w:a[3],t:a[4],f:a[5],i:a[6],v:a[7],s:a[8]})));
+STONES.push(...[['プラチナ',[.9,.92,.96],80000,.2,.2,.6,.35,.2,.3],['レッドダイヤモンド',[1,.04,.12],160000,.1,1,1,.3,0,.6],['キョウチュウサイト',[1,.5,.12],450000,.04,.9,1,.8,0,.5]].map(a=>({n:a[0],c:a[1],r:a[1].map(x=>x*.45+.3),base:a[2],hard:.45,w:a[3],t:a[4],f:a[5],i:a[6],v:a[7],s:a[8],x:1})));
+STONES.push(...[["ソーダライト",[0.15,0.25,0.7],330,9,0.1,0,0,0.5,0],["ヘマタイト",[0.3,0.3,0.35],180,10,0,0,0.3,0,0],["アベンチュリン",[0.3,0.7,0.45],300,9,0.2,0.1,0.2,0.2,0],["スモーキークォーツ",[0.5,0.4,0.3],380,8,0.7,0.8,0,0,0],["ブラッドストーン",[0.1,0.4,0.25],420,8,0,0,0,0.8,0],["ロードナイト",[0.9,0.35,0.5],500,7,0.1,0,0,0.9,0],["ラリマー",[0.5,0.85,0.95],900,6,0.2,0.1,0.1,0.7,0],["サンストーン",[0.95,0.55,0.25],750,6,0.3,0.2,0.8,0,0],["アマゾナイト",[0.3,0.8,0.7],650,7,0.1,0,0.1,0.4,0],["クリソプレーズ",[0.35,0.85,0.5],1200,5,0.2,0,0,0.1,0],["カルセドニー",[0.7,0.8,0.9],280,8,0.4,0.2,0,0.1,0],["ジャスパー",[0.7,0.3,0.2],230,9,0,0,0,0.6,0],["アポフィライト",[0.85,0.95,0.9],1250,4,0.8,0.7,0.2,0,0],["クンツァイト",[0.9,0.6,0.9],2000,3.5,0.8,0.9,0,0,0],["アイオライト",[0.3,0.35,0.8],1500,4,0.75,0.8,0.2,0,0],["ダイオプサイド",[0.2,0.5,0.3],900,5,0.7,0.8,0,0,0.4],["ブラックスターサファイア",[0.1,0.1,0.15],3000,2.5,0.2,0.2,0,0,1],["ピジョンブラッド",[0.95,0.05,0.1],30000,0.5,0.7,0.9,0,0,0.3],["ロイヤルブルーサファイア",[0.05,0.15,0.95],14000,0.9,0.7,0.9,0,0,0.2],["ジェダイト",[0.15,0.85,0.5],12000,1,0.5,0.3,0,0.2,0],["カラーチェンジガーネット",[0.6,0.2,0.5],6500,1.6,0.7,0.9,0.6,0,0],["グランディディエライト",[0.5,0.85,0.85],60000,0.25,0.7,0.9,0.1,0,0],["ジェレミェヴァイト",[0.9,0.95,1],70000,0.2,0.9,1,0.3,0,0],["ベニトアイト",[0.2,0.3,0.95],50000,0.2,0.85,1,0.4,0,0],["モアッサナイト",[0.97,0.98,1],9000,1.2,1,1,0.7,0,0]].map(a=>({n:a[0],c:a[1],r:a[1].map(x=>x*.45+.14),base:a[2],hard:Math.max(.45,1.3-.4*Math.log10(a[2]/40)),w:a[3],t:a[4],f:a[5],i:a[6],v:a[7],s:a[8]})));
+// ---- 亜種(Variants): 原種から派生した石 ----
+// [name,color,base,weight,transparency,facet,iridescence,veins,star,parent,en]
+STONES.push(...[["ルチルクォーツ",[0.95,0.78,0.4],520,5,0.55,0.7,0.1,0.55,0.2,"水晶","Rutilated Quartz"],["アメトリン",[0.72,0.5,0.75],1100,3.5,0.75,0.9,0.05,0.3,0,"アメジスト","Ametrine"],["モリオン",[0.07,0.06,0.08],480,5,0.35,0.6,0,0,0,"水晶","Morion"],["プラシオライト",[0.68,0.88,0.62],900,3.5,0.8,0.9,0,0,0,"アメジスト","Prasiolite"],["ブルーレースアゲート",[0.62,0.78,0.93],340,6,0.35,0,0.05,0.9,0,"瑪瑙","Blue Lace Agate"],["ファイアアゲート",[0.85,0.42,0.12],700,3,0.3,0.1,0.7,0.2,0,"瑪瑙","Fire Agate"],["スーパーセブン",[0.55,0.35,0.75],2800,1.6,0.7,0.9,0.2,0.7,0,"アメジスト","Super Seven"],["ミスティックトパーズ",[0.5,0.42,0.92],1300,3.5,0.85,0.9,0.9,0,0,"ブルートパーズ","Mystic Topaz"],["ピンクトパーズ",[0.98,0.62,0.78],2400,2.2,0.85,0.9,0.1,0,0,"ブルートパーズ","Pink Topaz"],["ホワイトトパーズ",[0.95,0.97,1],650,5,0.95,0.9,0.05,0,0,"ブルートパーズ","White Topaz"],["シャンパントパーズ",[0.95,0.8,0.58],1000,3.5,0.85,0.9,0,0,0,"ブルートパーズ","Champagne Topaz"],["ロードライトガーネット",[0.8,0.15,0.38],1500,3.5,0.6,0.85,0,0,0,"ガーネット","Rhodolite Garnet"],["マンダリンガーネット",[1,0.55,0.1],2400,2,0.7,0.9,0,0,0,"ガーネット","Mandarin Garnet"],["アルマンディン",[0.55,0.05,0.18],1300,4,0.45,0.8,0,0,0,"ガーネット","Almandine"],["ブルーガーネット",[0.1,0.45,0.85],24000,0.4,0.7,0.9,0.7,0,0,"ガーネット","Blue Garnet"],["ウォーターメロントルマリン",[0.82,0.45,0.58],2600,2,0.6,0.8,0.2,0.85,0,"トルマリン","Watermelon Tourmaline"],["インディゴライト",[0.1,0.3,0.6],1800,2.5,0.55,0.8,0.15,0,0,"トルマリン","Indicolite"],["ルベライト",[0.9,0.15,0.35],2200,2.2,0.6,0.85,0.1,0,0,"トルマリン","Rubellite"],["ブラックトルマリン",[0.06,0.06,0.08],600,4,0.05,0.2,0.1,0.2,0,"トルマリン","Black Tourmaline"],["ゴシェナイト",[0.95,0.97,0.96],900,3.5,0.9,0.9,0,0,0,"アクアマリン","Goshenite"],["マキシクスベリル",[0.2,0.35,0.85],3400,1.6,0.8,0.9,0,0,0,"アクアマリン","Maxixe Beryl"],["ピンクサファイア",[0.98,0.45,0.62],5200,1.5,0.65,0.85,0,0.1,0.3,"サファイア","Pink Sapphire"],["イエローサファイア",[0.98,0.85,0.2],4800,1.6,0.7,0.85,0,0,0.2,"サファイア","Yellow Sapphire"],["スタールビー",[0.85,0.05,0.15],9500,0.9,0.45,0.4,0,0.1,1,"ルビー","Star Ruby"],["コーンフラワーサファイア",[0.2,0.35,0.95],24000,0.5,0.7,0.9,0.2,0,0.1,"サファイア","Cornflower Sapphire"],["ブルーオパール",[0.35,0.75,0.82],1800,3,0.4,0,0.7,0.2,0,"オパール","Blue Opal"],["ボルダーオパール",[0.42,0.28,0.2],3800,1.8,0.2,0,0.95,0.5,0,"オパール","Boulder Opal"],["ウォーターオパール",[0.88,0.95,1],2200,2.2,0.75,0.1,0.6,0,0,"オパール","Water Opal"],["レインボームーンストーン",[0.85,0.9,1],2400,2.2,0.55,0.2,0.9,0.4,0,"ムーンストーン","Rainbow Moonstone"],["オレゴンサンストーン",[1,0.5,0.2],2800,1.8,0.8,0.7,0.5,0,0,"サンストーン","Oregon Sunstone"],["ラベンダージェイド",[0.75,0.6,0.88],2400,3,0.2,0,0,0.4,0,"翡翠","Lavender Jade"],["墨翠",[0.04,0.1,0.08],2100,3,0.1,0,0,0.4,0,"翡翠","Black Jade"],["コバルトスピネル",[0.1,0.35,0.88],6500,1.2,0.75,0.95,0.1,0,0,"スピネル","Cobalt Spinel"],["ブラックスピネル",[0.05,0.05,0.07],700,4,0.15,0.6,0,0,0,"スピネル","Black Spinel"],["ホットピンクスピネル",[1,0.3,0.55],3600,1.8,0.7,0.9,0,0,0,"スピネル","Hot Pink Spinel"],["イエローダイヤ",[0.98,0.85,0.2],14000,0.8,1,1,0.2,0,0,"ダイヤモンド","Yellow Diamond"],["グリーンダイヤ",[0.4,0.9,0.5],32000,0.35,1,1,0.3,0,0,"ダイヤモンド","Green Diamond"],["ブラックダイヤ",[0.05,0.05,0.07],9500,1,0.25,1,0.3,0,0,"ダイヤモンド","Black Diamond"],["トラピッチェエメラルド",[0.1,0.65,0.4],7000,1,0.5,0.5,0,0.6,0.9,"エメラルド","Trapiche Emerald"],["パラサイトペリドット",[0.9,0.8,0.3],1700,2.5,0.65,0.8,0.3,0.5,0,"ペリドット","Pallasite Peridot"]].map(a=>({n:a[0],c:a[1],r:a[1].map(x=>x*.45+.14),base:a[2],hard:Math.max(.45,1.3-.4*Math.log10(a[2]/40)),w:a[3],t:a[4],f:a[5],i:a[6],v:a[7],s:a[8],sub:1,p:a[9]})));
+{const SUBP={"インペリアルトパーズ":"ブルートパーズ","パライバトルマリン":"トルマリン","ツァボライト":"ガーネット","デマントイド":"ガーネット","カラーチェンジガーネット":"ガーネット","ピンクダイヤ":"ダイヤモンド","ブルーダイヤ":"ダイヤモンド","レッドダイヤモンド":"ダイヤモンド","ブラックオパール":"オパール","ファイアオパール":"オパール","ピジョンブラッド":"ルビー","ロイヤルブルーサファイア":"サファイア","ブラックスターサファイア":"サファイア","パパラチア":"サファイア","ジェダイト":"翡翠","ヘリオドール":"アクアマリン","モルガナイト":"アクアマリン","レッドベリル":"アクアマリン","アメジスト":"水晶","シトリン":"水晶","スモーキークォーツ":"水晶","ローズクォーツ":"水晶","カーネリアン":"カルセドニー","クリソプレーズ":"カルセドニー","瑪瑙":"カルセドニー"};STONES.forEach(s=>{if(SUBP[s.n]){s.sub=1;s.p=SUBP[s.n]}})}
+STONES.push({n:'ウレキサイト',c:[.93,.95,.97],r:[.78,.78,.74],base:480,hard:.86,w:4.5,t:.62,f:0,i:.15,v:.9,s:0});
+// ---- 比重(g/cm³): 実在の値。亜種は原種の値を引き継ぐ ----
+const SG0={"ただの石":2.7,"大理石":2.7,"黒曜石":2.4,"黄鉄鉱":5.0,"方解石":2.71,"蛍石":3.18,"ヘマタイト":5.2,"ジャスパー":2.6,"虎目石":2.65,"孔雀石":3.9,"カルセドニー":2.6,"水晶":2.65,"アベンチュリン":2.65,"ソーダライト":2.3,"ウレキサイト":1.95,"琥珀":1.08,"ブラッドストーン":2.6,"ロードナイト":3.6,"ペリドット":3.34,"ラピスラズリ":2.8,"ターコイズ":2.7,"アマゾナイト":2.57,"サンストーン":2.65,"ブルートパーズ":3.53,"トルマリン":3.06,"ラリマー":2.8,"ダイオプサイド":3.3,"アクアマリン":2.72,"珊瑚":2.7,"ラブラドライト":2.7,"ガーネット":3.9,"アポフィライト":2.4,"ロードクロサイト":3.5,"ジルコン":4.7,"ムーンストーン":2.58,"アイオライト":2.6,"真珠":2.7,"スピネル":3.6,"翡翠":3.34,"クンツァイト":3.18,"タンザナイト":3.35,"カイヤナイト":3.65,"オパール":2.1,"エメラルド":2.72,"スフェーン":3.53,"サファイア":4.0,"ルビー":4.0,"アレキサンドライト":3.73,"モアッサナイト":3.22,"ダイヤモンド":3.52,"ペインタイト":4.01,"ベニトアイト":3.65,"グランディディエライト":2.98,"ジェレミェヴァイト":3.3,"プラチナ":21.45,"キョウチュウサイト":8.2},SGO={"ボルダーオパール":2.5,"ブラックトルマリン":3.2,"墨翠":3.0,"ルチルクォーツ":2.7,"アルマンディン":4.1,"ロードライトガーネット":3.84,"デマントイド":3.84,"ツァボライト":3.61,"ブルーガーネット":3.8},sgOf=n=>{if(SGO[n]!==undefined)return SGO[n];if(SG0[n]!==undefined)return SG0[n];const s=STONES.find(x=>x.n===n);return s&&s.p?sgOf(s.p):2.7};STONES.forEach(s=>s.sg=sgOf(s.n));
+STONES.sort((a,b)=>a.base-b.base);
+const BI={n:'ビスマス',c:[.82,.62,.78],r:[.42,.4,.46],base:52000,hard:.8,w:0,t:.08,f:.9,i:.95,v:0,s:0,sg:9.78,secret:1};
+const TOOLS=[
+{id:'finger',n:'指',d:'基本の道具',R:.4,r:1,hold:0,p:0},
+{id:'cloth',n:'研磨布',d:'広い範囲を磨ける',R:.66,r:1.3,hold:0,p:500},
+{id:'pen',n:'研磨ペン',d:'範囲は狭いが速い',R:.24,r:3.8,hold:0,p:1100},
+{id:'wheel',n:'電動ホイール',d:'押し続けるだけで磨ける',R:.5,r:3,hold:1,p:3000},
+{id:'laser',n:'レーザー研磨機',d:'押し続けで一点を超高速',R:.3,r:7,hold:1,p:9000},
+{id:'jet',n:'ジェットサンダー',d:'押し続けで広範囲を高速',R:.62,r:6,hold:1,p:22000},
+{id:'sonic',n:'超音波ポリッシャー',d:'押し続けで広範囲を高速',R:.7,r:9,hold:1,p:70000},
+{id:'plasma',n:'プラズマ研磨機',d:'押し続けで広く超高速',R:.66,r:14,hold:1,p:350000},
+{id:'quantum',n:'量子研磨機',d:'触れるだけで超広範囲を神速',R:1,r:22,hold:1,p:3000000},
+{id:'gcloth',n:'金の研磨布',d:'超広範囲を一気に磨ける(クエスト報酬)',R:.95,r:1.5,hold:0,p:0,q:1},
+{id:'stardust',n:'星屑ペン',d:'狭いがとても速い(クエスト報酬)',R:.26,r:6,hold:0,p:0,q:1},
+{id:'rainbow',n:'虹色ホイール',d:'押し続けで広く速く磨く(クエスト報酬)',R:.7,r:4.5,hold:1,p:0,q:1},
+{id:'omega',n:'ジェットΩ',d:'押し続けで広範囲を超高速(クエスト報酬)',R:.8,r:7,hold:1,p:0,q:1},
+{id:'plat',n:'プラチナレーザー',d:'押し続けで一点を極超高速(クエスト報酬)',R:.34,r:12,hold:1,p:0,q:1},
+{id:'divine',n:'神の手',d:'押し続けで広範囲を神速(クエスト報酬)',R:.95,r:11,hold:1,p:0,q:1}];
+const UPS={
+speed:{n:'磨き速度',d:'こする量+30%/Lv',b:400},
+luck:{n:'当たり運',d:'希少な鉱石が出やすい',b:800},
+range:{n:'ブラシ範囲',d:'範囲+12%/Lv',b:500},
+auto:{n:'超音波洗浄',d:'放置でも少しずつ磨ける',b:1500},
+loupe:{n:'鑑定ルーペ',d:'Lv1:石の名前 Lv2:予想売値',b:1000,m:2},
+bonus:{n:'仕上げ剤',d:'売値+10%/Lv',b:900},
+nozzle:{n:'カット精度',d:'ジェットの許容範囲が広がる',b:700},
+mutHunt:{n:'突然変異ハンター',d:'突然変異が出やすい(+50%/Lv)',b:3000,m:10},
+gorHunt:{n:'Gorgeousハンター',d:'Gorgeousが出やすい(×1.35/Lv)',b:25000,m:10},
+vault:{n:'展示ケース拡張',d:'インベストの展示枠が+1(最大13枠)',b:3000,m:10}};
+const WP=[['工房の夜',0,'#2b3646','#12161d'],['深海',0,'#17405a','#08141f'],['若葉',0,'#2d4a33','#0f1a12'],
+['夕焼け',300,'#7a3d4a','#1e1226'],['桜',400,'#6b4560','#1d1322'],['砂漠',500,'#6b5530','#1c150b'],['氷河',600,'#356a80','#0c1c26'],
+['紫の夜',800,'#4a3470','#120c24'],['溶岩',1000,'#7a2a14','#1c0a06'],['森の奥',1200,'#1f5a45','#07170f'],['宇宙',1500,'#262a66','#05061a'],
+['黄金',2000,'#7a6320','#1c1606'],['ネオン',2500,'#0f6a6a','#1a0a2e'],['海辺',3000,'#2a6f8a','#3a2a1a'],['雪原',3500,'#5a6a80','#141a24'],
+['虹',4500,'#5a3a80','#0f3a40'],['王宮',6000,'#6a1f3a','#1a0a1e'],['銀河の果て',8000,'#3a1f6a','#02030f'],
+['ステンドグラス',0,'#6a2f5a','#10243a',1],['星降る夜',0,'#1b2a6b','#04051a',1],['龍宮',0,'#0f6a7a','#02121c',1],['大聖堂',0,'#7a6a4a','#14100a',1],['宝石の洞窟',0,'#3a1f6a','#0a1a1a',1],['極光',0,'#1f7a5a','#0a1038',1],['天空の神殿',0,'#a08a5a','#2a3a6a',1],['至高の間',0,'#c9a13a','#1a0a00',1]];
+const SH=[
+{n:'ダイヤ',poly:[[0,-1],[1,0],[0,1],[-1,0]],fn:(x,y,z)=>1.15/(Math.abs(x)+Math.abs(y)+Math.abs(z))},
+{n:'キューブ',poly:[[-.8,-.8],[.8,-.8],[.8,.8],[-.8,.8]],fn:(x,y,z)=>.62/Math.max(Math.abs(x),Math.abs(y),Math.abs(z))},
+{n:'スター',poly:Array.from({length:10},(_,i)=>{const a=-Math.PI/2+i*Math.PI/5,r=i%2?.45:1;return[Math.cos(a)*r,Math.sin(a)*r]}),fn:(x,y,z)=>(.55+.5*Math.pow(Math.abs(Math.cos(2.5*Math.atan2(y,x))),2.5))*(1-.55*z*z)+.12},
+{n:'しずく',poly:Array.from({length:40},(_,i)=>{const t=i/40*Math.PI*2;return[Math.sin(t)*Math.pow(Math.sin(t/2),1.5)*.95,-Math.cos(t)*.95]}),fn:(x,y,z)=>.62+.5*Math.pow(Math.max(y,0),3)+.1*(1-Math.abs(y))}];
+const GR=[[100,'SSS','神の領域'],[98,'SS','芸術の域'],[93,'S','見事な逸品'],[85,'A','上出来'],[72,'B','まずまず'],[55,'C','荒削り'],[0,'D','出直し']];
+const yen=v=>'¥'+Math.round(v).toLocaleString('ja-JP');
+const $=id=>document.getElementById(id);
+const DEF=()=>({name:'',gr2:1,mach:{},money:0,owned:['finger'],tool:'finger',up:{},wp:0,wpOwn:[0,1,2],stock:3,jet:false,snd:true,fx:true,lang:(navigator.language||'').startsWith('ja')?'ja':'en',st:{sold:0,earn:0,best:6,art:0},inv:[],pend:null});
+try{localStorage.removeItem('lapidary_debug');localStorage.removeItem('gempolish3_debug')}catch(e){}
+const SK='gempolish3';
+/* ===== 完全記憶 (Perfect Memory): 多重保存・自動復元・履歴・ファイル書き出し ===== */
+const MEM=(()=>{
+ const DBN='lapidary_mem',ST='kv',BK=SK+'_bk',EXP='lapidary_lastexp';
+ const okS=o=>!!o&&typeof o==='object'&&typeof o.money==='number'&&isFinite(o.money)&&Array.isArray(o.owned)&&!!o.st&&typeof o.st==='object';
+ const parse=s=>{try{const o=JSON.parse(s);return okS(o)?o:null}catch(e){return null}};
+ const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+ const pad=n=>('0'+n).slice(-2);
+ const fmt=t=>{if(!t)return'—';const d=new Date(t);return pad(d.getMonth()+1)+'/'+pad(d.getDate())+' '+pad(d.getHours())+':'+pad(d.getMinutes())};
+ const dkey=t=>{const d=new Date(t);return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate()};
+ const LIM={auto:8,day:7,man:6};
+ const MSG={rec:['RESTORED','前回のデータを自動復元しました'],imp:['IMPORTED','ファイルのデータを読み込みました'],rst:['RESTORED','バックアップから復元しました'],exp:['SAVED','バックアップファイルを書き出しました'],bad:['ERROR','このファイルは読み込めません']};
+ const info={ls:null,idb:null,persist:null,ts:0,fs:null,fsT:0};
+ let dbp=null,lastStr=null,lastTs=0,lastRaw=null,tmr=0,lastBk=0,lastHist=0,locked=false,checked=false,chain=Promise.resolve(),hist=[],pend=null,cb=null,inp=null;
+ const M={arm:''};
+ const toast=c=>{try{const m=MSG[c];qtoast('<small>'+m[0]+'</small><b>'+m[1]+'</b>')}catch(e){}};
+ const open=()=>dbp||(dbp=new Promise(res=>{try{const r=indexedDB.open(DBN,1);r.onupgradeneeded=()=>{if(!r.result.objectStoreNames.contains(ST))r.result.createObjectStore(ST)};r.onsuccess=()=>res(r.result);r.onerror=r.onblocked=()=>res(null)}catch(e){res(null)}}));
+ const get=k=>open().then(d=>d?new Promise(res=>{try{const q=d.transaction(ST,'readonly').objectStore(ST).get(k);q.onsuccess=()=>res(q.result===undefined?null:q.result);q.onerror=()=>res(null)}catch(e){res(null)}}):null);
+ const put=(k,v)=>open().then(d=>d?new Promise(res=>{try{const t=d.transaction(ST,'readwrite');t.objectStore(ST).put(v,k);t.oncomplete=()=>res(true);t.onerror=t.onabort=()=>res(false)}catch(e){res(false)}}):false);
+ function addHist(k,label,str,t){
+  chain=chain.then(async()=>{try{
+   const o=parse(str);if(!o)return;
+   let a=await get('hist');if(!Array.isArray(a))a=[];
+   const mk=kk=>({ts:t,k:kk,label,money:o.money,name:o.name||'',data:str,d:dkey(t)});
+   a.push(mk(k));
+   if(k==='auto'&&!a.some(e=>e.k==='day'&&e.d===dkey(t)))a.push(mk('day'));
+   for(const kk in LIM){const ix=[];a.forEach((e,i)=>{if(e.k===kk)ix.push(i)});
+    if(ix.length>LIM[kk]){ix.sort((p,q)=>a[p].ts-a[q].ts);const del=new Set(ix.slice(0,ix.length-LIM[kk]));a=a.filter((e,i)=>!del.has(i))}}
+   await put('hist',a);
+  }catch(e){}});
+  return chain}
+ function refresh(f){get('hist').then(a=>{hist=(Array.isArray(a)?a:[]).map(e=>({id:e.ts+'_'+e.k,ts:e.ts,k:e.k,label:e.label,money:e.money,name:e.name})).sort((x,y)=>y.ts-x.ts);if(f)f()})}
+ function boot(){
+  let raw=null;try{raw=localStorage.getItem(SK)}catch(e){}
+  lastRaw=raw;let o=parse(raw);
+  if(!o){
+   if(raw){try{localStorage.setItem(SK+'_bad',raw)}catch(e){}}
+   for(const k of[BK+'1',BK+'2']){try{const b=parse(localStorage.getItem(k));if(b){o=b;break}}catch(e){}}
+  }
+  return o}
+ function write(){
+  if(locked)return false;
+  try{
+   if(!okS(S))return false;
+   const t=Date.now();S._ts=t;const str=JSON.stringify(S);
+   try{
+    const cur=localStorage.getItem(SK);
+    if(cur&&lastRaw&&cur!==lastRaw){const co=parse(cur);if(co&&(co._ts||0)>lastTs)addHist('man','別タブの保存分',cur,co._ts||t)}
+    if(t-lastBk>120000){
+     if(cur&&parse(cur)){const b1=localStorage.getItem(BK+'1');if(b1)localStorage.setItem(BK+'2',b1);localStorage.setItem(BK+'1',cur)}
+     lastBk=t}
+    localStorage.setItem(SK,str);lastRaw=str;info.ls=true;
+   }catch(e){info.ls=false}
+   info.ts=t;lastStr=str;lastTs=t;
+   if(!tmr)tmr=setTimeout(flush,700);
+   return true
+  }catch(e){return false}}
+ function flush(){
+  tmr=0;if(!lastStr||locked)return;
+  if(!checked){tmr=setTimeout(flush,300);return}
+  const s=lastStr,t=lastTs;
+  put('latest',{ts:t,data:s}).then(ok=>{info.idb=ok});
+  fsSoon();
+  if(t-lastHist>900000){lastHist=t;addHist('auto','',s,t)}}
+ function check(ok,bootTs){
+  get('latest').then(r=>{
+   try{
+    const o=r&&r.data?parse(r.data):null;
+    if(!o||!(!ok||r.ts>bootTs+3000)){checked=true;return}
+    if(sessionStorage.getItem('lap_rec')){checked=true;return}
+    sessionStorage.setItem('lap_rec','1');sessionStorage.setItem('lap_msg','rec');
+    locked=true;
+    try{localStorage.setItem(SK,r.data)}catch(e){}
+    location.reload();
+   }catch(e){checked=true}
+  }).catch(()=>{checked=true})}
+ function persist(){try{if(navigator.storage&&navigator.storage.persisted){navigator.storage.persisted().then(p=>{info.persist=p;if(!p&&navigator.storage.persist)return navigator.storage.persist().then(r=>{info.persist=r})}).catch(()=>{})}}catch(e){}}
+ async function apply(str,msg){
+  const o=parse(str);if(!o)return false;
+  locked=true;clearTimeout(tmr);tmr=0;lastStr=null;
+  try{if(okS(S))await addHist('man','復元前',JSON.stringify(S),Date.now())}catch(e){}
+  o._ts=Date.now();const s2=JSON.stringify(o);
+  try{localStorage.setItem(SK,s2)}catch(e){}
+  await put('latest',{ts:o._ts,data:s2});
+  try{sessionStorage.removeItem('lap_rec');sessionStorage.setItem('lap_msg',msg)}catch(e){}
+  location.reload();return true}
+ function makeInput(){
+  inp=document.createElement('input');inp.type='file';inp.accept='.json,application/json,text/plain';inp.style.display='none';document.body.appendChild(inp);
+  inp.onchange=()=>{const f=inp.files&&inp.files[0];inp.value='';if(!f)return;
+   const r=new FileReader();
+   r.onload=()=>{try{const j=JSON.parse(r.result),d=j&&j.data?j.data:j;if(!okS(d))throw 0;pend={name:d.name||'',money:d.money,ts:d._ts||(j.exported?Date.parse(j.exported):0),str:JSON.stringify(d)};if(cb)cb()}catch(e){pend=null;toast('bad');if(cb)cb()}};
+   r.onerror=()=>toast('bad');r.readAsText(f)}}
+
+ /* ===== ファイル自動保存 (File System Access API / PC の Chrome・Edge) ===== */
+ const FSOK=typeof window.showSaveFilePicker==='function';
+ let fh=null,fsRun=false,fsAgain=false,fsTm=0,fsMod=0,fsAsked=false;
+ const fsPerm=async ask=>{
+  if(!fh)return false;
+  try{
+   const o={mode:'readwrite'};
+   let p=fh.queryPermission?await fh.queryPermission(o):'granted';
+   if(p!=='granted'&&ask&&fh.requestPermission)p=await fh.requestPermission(o);
+   return p==='granted'
+  }catch(e){return false}};
+ const fsRead=async()=>{try{const f=await fh.getFile(),t=await f.text();if(!t.trim())return null;const j=JSON.parse(t),d=j&&j.data?j.data:j;return okS(d)?d:null}catch(e){return null}};
+ async function fsSave(){
+  if(!fh||!lastStr||info.fs==='newer')return;
+  if(fsRun){fsAgain=true;return}
+  fsRun=true;
+  try{
+   if(await fsPerm(false)){
+    /* 別端末や古いタブが書いた「より新しいファイル」を上書きしない */
+    const f0=await fh.getFile();
+    if(fsMod!==-1&&(!fsMod||f0.lastModified!==fsMod)){
+     const d=await fsRead();
+     if(d&&(d._ts||0)>lastTs+1000){info.fs='newer';fsRun=false;if(cb)cb();return}
+    }
+    const str=lastStr,w=await fh.createWritable();
+    try{await w.write('{"app":"LapidaryStudio","ver":1,"exported":"'+new Date().toISOString()+'","data":'+str+'}');await w.close()}
+    catch(e){try{await w.abort()}catch(_){}throw e}
+    fsMod=(await fh.getFile()).lastModified;info.fs=true;info.fsT=Date.now()
+   }else info.fs='perm'
+  }catch(e){info.fs=false}
+  fsRun=false;
+  if(fsAgain){fsAgain=false;fsSave()}
+ }
+ const fsSoon=()=>{if(!fh||fsTm)return;fsTm=setTimeout(()=>{fsTm=0;fsSave()},2500)};
+ M.fsLink=async()=>{
+  if(!FSOK)return;
+  try{
+   const h=await window.showSaveFilePicker({suggestedName:'Lapidary_Studio_save.json',types:[{description:'Lapidary Studio save',accept:{'application/json':['.json']}}]});
+   const prev=fh;fh=h;
+   const ex=await fsRead();
+   if(ex&&(ex._ts||0)>(S._ts||0)+1000){
+    const ja=S.lang!=='en';
+    if(confirm(ja?'選んだファイルに、いまのゲームより新しいデータがあります。\n\nOK ＝ ファイルのデータを読み込む（いまのデータは自動バックアップに残ります）\nキャンセル ＝ いまのデータでファイルを上書き'
+     :'The selected file has newer data than the current game.\n\nOK = load the file (current data stays in the automatic backups)\nCancel = overwrite the file with the current data')){
+     await put('fh',h);info.fs=true;await apply(JSON.stringify(ex),'imp');return}
+   }
+   fsMod=-1;info.fs=true;await put('fh',h);
+   if(!lastStr&&okS(S))lastStr=JSON.stringify(S);
+   await fsSave()
+  }catch(e){}
+  if(cb)cb()};
+ M.fsAllow=async()=>{if(await fsPerm(true)){info.fs=true;await fsSave()}if(cb)cb()};
+ M.fsOff=async()=>{fh=null;info.fs=null;fsMod=0;await put('fh',null);if(cb)cb()};
+ M.fsLoad=async()=>{try{const d=await fsRead();if(!d)throw 0;info.fs=true;await apply(JSON.stringify(d),'imp')}catch(e){toast('bad')}};
+ M.fsForce=()=>{fsMod=-1;info.fs=true;fsSave()};
+ M.boot=boot;M.write=write;M.refresh=refresh;
+ M.setCb=f=>{cb=f};
+ M.init=ok=>{
+  const bootTs=S._ts||0;lastTs=bootTs;info.ts=bootTs;
+  try{localStorage.setItem('_lap_t','1');localStorage.removeItem('_lap_t');info.ls=true}catch(e){info.ls=false}
+  open().then(d=>{info.idb=!!d;if(!d)checked=true});
+  check(ok,bootTs);persist();
+  get('fh').then(h=>{if(h&&h.kind==='file'){fh=h;fsPerm(false).then(p=>{info.fs=p?true:'perm';if(p)fsSave();if(cb)cb()})}}).catch(()=>{});
+  addEventListener('click',()=>{if(fh&&info.fs==='perm'&&!fsAsked){fsAsked=true;fsPerm(true).then(p=>{if(p){info.fs=true;fsSave()}if(cb)cb()})}});
+  setTimeout(()=>{try{
+   if(fh&&info.fs===true)return;
+   let ex=0;try{ex=+localStorage.getItem(EXP)||0}catch(e){}
+   if(S.st&&S.st.sold>=3&&Date.now()-ex>259200000){
+    const ja=S.lang!=='en';
+    qtoast('<small>BACKUP</small><b>'+(ja?'バックアップ未実施です。設定→データ保護で書き出しを':'No recent backup. Export one in Settings')+'</b>')}
+  }catch(e){}},9000);
+  addEventListener('pointerdown',persist,{once:true});
+  const hide=()=>{if(tmr){clearTimeout(tmr);flush()}if(fh){clearTimeout(fsTm);fsTm=0;fsSave()}};
+  addEventListener('pagehide',hide);document.addEventListener('visibilitychange',()=>{if(document.hidden)hide()});
+  makeInput();refresh();
+  try{const m=sessionStorage.getItem('lap_msg');if(m){sessionStorage.removeItem('lap_msg');setTimeout(()=>toast(m),1800)}}catch(e){}}
+ M.snap=label=>{try{if(okS(S))addHist('man',label,JSON.stringify(S),Date.now())}catch(e){}};
+ M.pick=()=>{if(inp)inp.click()};
+ M.importOk=()=>{if(pend){const s=pend.str;pend=null;apply(s,'imp')}};
+ M.importNo=()=>{pend=null};
+ M.restore=id=>{get('hist').then(a=>{const e=(a||[]).find(x=>(x.ts+'_'+x.k)===id);if(e)apply(e.data,'rst')})};
+ M.exportFile=()=>{
+  try{
+   const o=Object.assign({},S);o._ts=Date.now();
+   const blob=new Blob([JSON.stringify({app:'LapidaryStudio',ver:1,exported:new Date().toISOString(),data:o},null,1)],{type:'application/json'});
+   const d=new Date(),n='Lapidary_Studio_backup_'+d.getFullYear()+pad(d.getMonth()+1)+pad(d.getDate())+'_'+pad(d.getHours())+pad(d.getMinutes())+'.json';
+   const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=n;document.body.appendChild(a);a.click();
+   setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1500);
+   try{localStorage.setItem(EXP,String(Date.now()))}catch(e){}
+   toast('exp')
+  }catch(e){toast('bad')}}
+ M.ui=(row,sb)=>{
+  const mk=v=>v===true?'✓':v===false?'✕':'…';
+  let ex=0;try{ex=+localStorage.getItem(EXP)||0}catch(e){}
+  let h='<p style="font-size:13px;color:var(--mute);margin:16px 0 4px">データ保護（完全記憶）</p>'
+   +'<p style="font-size:12px;color:var(--mute);line-height:1.8;margin:0 0 6px">本体保存 '+mk(info.ls)+'　予備保存 '+mk(info.idb)+'　永続化 '+(info.persist===true?'✓':info.persist===false?'未許可':'…')
+   +'<br>最終保存 '+fmt(info.ts)+'　ファイル書き出し '+(ex?fmt(ex):'未実施')+'</p>';
+  h+=row('ファイルに書き出す','全データをバックアップファイルとして保存',sb('data-a="exp"','書き出す','on'));
+  h+=row('ファイルから読み込む','バックアップファイルのデータに置き換える',sb('data-a="imp"','読み込む',''));
+  if(pend)h+=row('読み込み待ち: '+esc(pend.name||'—')+' '+yen(pend.money),fmt(pend.ts)+' 保存分',sb('data-a="impok"','置き換える','gold')+sb('data-a="impno"','取消',''));
+  if(FSOK){
+   const st=info.fs,on=!!fh;
+   const sub=!on?'保存先ファイルを一度選ぶと、以後プレイ中は自動で上書き保存されます'
+    :st===true?'自動保存中　'+fmt(info.fsT)
+    :st==='perm'?'ブラウザの許可待ちです（ボタンを押してください）'
+    :st==='newer'?'ファイルの方が新しいデータです。どちらを使うか選んでください'
+    :'保存に失敗しました。もう一度設定してください';
+   const b=!on?sb('data-a="fsl"','保存先を選ぶ','on')
+    :st==='perm'?sb('data-a="fsa"','許可する','gold')+sb('data-a="fso"','解除','')
+    :st==='newer'?sb('data-a="fsld"','ファイルを読み込む','gold')+sb('data-a="fsf"','上書き','')
+    :sb('data-a="fsl"','選び直す','')+sb('data-a="fso"','解除','');
+   h+=row('ファイル自動保存',sub,b)}
+  else h+=row('ファイル自動保存','このブラウザでは使えません（PCのChrome・Edgeで対応）。「ファイルに書き出す」を定期的に使ってください',sb('','—','',true));
+  if(hist.length){
+   h+='<p style="font-size:13px;color:var(--mute);margin:12px 0 4px">自動バックアップ</p>';
+   hist.slice(0,10).forEach(e=>{
+    const kl=e.k==='auto'?'自動記録':e.k==='day'?'日次記録':(e.label||'');
+    h+=row(fmt(e.ts)+'　'+kl,yen(e.money)+(e.name?'　'+esc(e.name):''),sb('data-a="rs" data-k="'+e.id+'"',M.arm===e.id?'もう一度押す':'復元',M.arm===e.id?'gold':''))})}
+  return h}
+ return M})();
+let S=DEF();
+{const _b=MEM.boot();if(_b)S=Object.assign(DEF(),_b);MEM.init(!!_b)}
+for(const k in UPS)S.up[k]=S.up[k]||0;
+if(!Array.isArray(S.inv))S.inv=[];
+{/* 旧ミシック石のセーブデータを掃除 */const MY=['星核','極光オパール','竜の心臓','時の結晶','虚空のダイヤ','創世の原石'];
+ MY.forEach(n=>{if(S.q){if(S.q.coll)delete S.q.coll[n];if(S.q.c)delete S.q.c['s_'+n]}if(S.ix)delete S.ix[n]});delete S.mseen}
+{/* 回転研磨の削除: 設備を持っていた場合は購入額を払い戻し */
+ if(S.mach)delete S.mach.set;if(S.pend&&S.pend.proc)delete S.pend.proc.set;if(S.mach&&S.mach.spin){delete S.mach.spin;S.money+=40000}
+ if(S.q){['cl','nt'].forEach(k=>{if(S.q[k])for(const id in S.q[k])if(id.startsWith('p_spin_'))delete S.q[k][id]});if(S.q.c)delete S.q.c.p_spin}}
+{/* 連打ブラスト・超高圧結晶化の削除: 設備を持っていた場合は購入額を払い戻し、関連データを掃除 */
+ if(S.mach){if(S.mach.mash){delete S.mach.mash;S.money+=120000}if(S.mach.press){delete S.mach.press;S.money+=25000000}}
+ const RD=['mash','press'];
+ if(S.q){['cl','nt'].forEach(k=>{if(S.q[k])for(const id in S.q[k])if(RD.some(r=>id.startsWith('p_'+r+'_')))delete S.q[k][id]});['c','dc'].forEach(k=>{if(S.q[k])RD.forEach(r=>delete S.q[k]['p_'+r])})}
+ const cp=o=>{if(o)RD.forEach(r=>delete o[r])};
+ if(Array.isArray(S.inv))S.inv.forEach(i=>cp(i&&i.proc));
+ if(S.pend)cp(S.pend.proc)}
+if(!S.gr2){S.st.best=Math.min(6,(S.st.best||5)+1);S.gr2=1}
+const save=()=>{qs();MEM.write()};
+const tool=()=>TOOLS.find(t=>t.id===S.tool)||TOOLS[0];
+const I18N=[["所持金", "Cash"], ["磨き度", "Polish"], ["研磨剤", "Abrasive"], ["カット", "Cut"], ["磨く", "Polish"], ["回す", "Rotate"], ["ショップ", "Shop"], ["仕上げへ", "Finish"], ["Lapidary Studioへ", "Welcome to"], ["ようこそ", "Lapidary Studio"], ["職人の名前を入力してください", "Enter your artisan name"], ["はじめる", "Start"], ["画像を長押しで保存、または共有できます", "Long-press the image to save or share"], ["閉じる", "Close"], ["ただの石", "Plain Rock"], ["水晶", "Quartz"], ["アメジスト", "Amethyst"], ["ガーネット", "Garnet"], ["ムーンストーン", "Moonstone"], ["翡翠", "Jade"], ["オパール", "Opal"], ["エメラルド", "Emerald"], ["サファイア", "Sapphire"], ["ルビー", "Ruby"], ["ダイヤモンド", "Diamond"], ["ダイヤ", "Diamond"], ["キューブ", "Cube"], ["スター", "Star"], ["しずく", "Teardrop"], ["指", "Finger"], ["基本の道具", "Basic tool"], ["研磨布", "Polishing cloth"], ["広い範囲を磨ける", "Polishes a wide area"], ["研磨ペン", "Polishing pen"], ["範囲は狭いが速い", "Narrow area, but fast"], ["電動ホイール", "Power wheel"], ["押し続けるだけで磨ける", "Just hold to polish"], ["レーザー研磨機", "Laser polisher"], ["押し続けで一点を超高速", "Hold to polish one spot at super speed"], ["ジェットサンダー", "Jet sander"], ["押し続けで広範囲を高速", "Hold to polish a wide area fast"], ["磨き速度", "Polish speed"], ["こする量+30%/Lv", "Rub amount +30%/Lv"], ["当たり運", "Luck"], ["希少な鉱石が出やすい", "Rare stones appear more often"], ["ブラシ範囲", "Brush size"], ["範囲+12%/Lv", "Range +12%/Lv"], ["超音波洗浄", "Ultrasonic cleaner"], ["放置でも少しずつ磨ける", "Slowly polishes even when idle"], ["鑑定ルーペ", "Appraisal loupe"], ["Lv1:石の名前 Lv2:予想売値", "Lv1: stone name  Lv2: estimated price"], ["仕上げ剤", "Finishing agent"], ["売値+10%/Lv", "Sale price +10%/Lv"], ["カット精度", "Cut precision"], ["ジェットの許容範囲が広がる", "Widens the jet's tolerance"], ["工房の夜", "Workshop Night"], ["深海", "Deep Sea"], ["若葉", "Fresh Leaves"], ["夕焼け", "Sunset"], ["桜", "Sakura"], ["砂漠", "Desert"], ["氷河", "Glacier"], ["紫の夜", "Purple Night"], ["溶岩", "Lava"], ["森の奥", "Deep Forest"], ["宇宙", "Space"], ["黄金", "Golden"], ["ネオン", "Neon"], ["海辺", "Seaside"], ["雪原", "Snowfield"], ["虹", "Rainbow"], ["王宮", "Royal Palace"], ["銀河の果て", "Edge of the Galaxy"], ["芸術の域", "Masterpiece"], ["見事な逸品", "A splendid piece"], ["上出来", "Well done"], ["まずまず", "Decent"], ["荒削り", "Rough"], ["出直し", "Try again"], ["仕上げ", "Finish"], ["ピカピカ！仕上げに進もう", "Sparkling! Time to finish up"], ["でこすって磨こう", " - rub to polish"], ["を押し続けて磨こう", " - hold to polish"], ["ドラッグで石を回そう", "Drag to rotate the stone"], ["研磨剤が<b>完全に消えました！</b>「完了」を押して終了", "Abrasive <b>completely removed!</b> Press \"Done\" to finish"], ["削り面に研磨剤を塗って仕上げよう。", "Apply abrasive to the cut surface to finish. "], ["暗い所や白く残った所がなくなるまでこすり込もう(石を回して全体に)", "Rub it in until no dark or white spots remain (rotate the stone to cover everything)"], ["削り面に<b>研磨剤</b>を塗って仕上げよう", "Apply <b>abrasive</b> to the cut surface to finish"], ["カット成功！", "Cut success! "], ["完了", "Done"], ["戻る", "Back"], ["中止", "Cancel"], ["光の線をなぞってカット。外れると割れる！", "Trace the glowing line to cut. Slip and it breaks!"], ["削り面に研磨剤を塗る(無料)", "Apply abrasive to cut surface (free)"], ["研磨剤を塗る(在庫 ", "Apply abrasive (stock "], ["アート加工済み", "Art finished"], ["芸術品にカットする", "Cut into art"], ["カット(要:ウォータージェット機)", "Cut (needs Water Jet machine)"], ["加工メニュー", "Processing"], ["売る ", "Sell "], ["(予想 ", "(est. "], ["戻って磨く", "Back to polishing"], ["　研磨剤 ", "  Abrasive "], ["　カット ", "  Cut "], ["点", " pts"], ["(芸術品)", "(Art)"], ["加工: ", "Processing: "], ["・", ", "], ["仕入れ ", "Cost "], ["　売値 ", "  Sale "], ["利益 +", "Profit +"], ["損失 -", "Loss -"], ["写真を撮って共有", "Take photo & share"], ["次の石を仕入れる", "Buy next stone"], ["割れてしまった…", "It shattered…"], ["カットに失敗して石が砕けました", "The cut failed and the stone shattered"], ["カットの", "-cut "], ["評価 ", "Grade "], ["職人 ", "Artisan "], ["名無しの職人", "Anonymous Artisan"], ["名無し", "Anonymous"], ["加熱処理", "Heat treatment"], ["色が鮮やかに。熱しすぎると割れる", "Brightens color. Overheating cracks it"], ["ファセットカット", "Facet cut"], ["多面カットで輝きUP。タイミング勝負", "More sparkle from many facets. Timing matters"], ["カボションカット", "Cabochon cut"], ["丸く削って星彩(スター)を出す", "Round it off to bring out a star effect"], ["染色", "Dyeing"], ["好きな色に変える", "Change to any color"], ["含浸処理", "Impregnation"], ["透明感アップ・内包物を目立たなくする", "Boosts clarity, hides inclusions"], ["刻印", "Engraving"], ["職人名を刻む", "Engrave the artisan name"], ["鑑定書", "Certificate"], ["鑑定書を付けて信頼UP", "Attach a certificate to boost trust"], ["設備はショップの消耗品タブで購入できます", "Buy equipment in the Shop's Supplies tab"], ["(要設備)", "(needs equipment)"], ["完了！ 売値×", " complete! Sale ×"], ["見事！", "Excellent!"], ["美しい面！", "Beautiful facets!"], ["所持金が足りません", "Not enough cash"], ["やめる", "Cancel"], ["色を選ぶ(費用 ", "Choose a color (cost "], ["赤", "Red"], ["青", "Blue"], ["緑", "Green"], ["紫", "Purple"], ["金", "Gold"], ["桃", "Pink"], ["銀", "Silver"], ["プラチナ", "Platinum"], ["緑の帯の所で指を離そう。熱しすぎると割れます", "Release in the green zone. Overheat and it cracks"], ["押し続けて加熱", "Hold to heat"], ["針が中央の帯に来た瞬間にタップ(6回)", "Tap the moment the needle hits the center band (6 times)"], ["刻む ", "Cut "], ["押し続けて丸く削ろう(硬い石ほど時間がかかります)", "Hold to grind it round (harder stones take longer)"], ["押し続けて研削", "Hold to grind"], ["形を選ぶ", "Choose a shape"], ["成功すれば価値が大きく上がりますが、失敗すると石が割れます。カット後は削り面に研磨剤を塗って仕上げます。", "Success greatly raises the value, but a failure shatters the stone. After cutting, you finish by applying abrasive to the cut surface."], ["道具", "Tools"], ["強化", "Upgrades"], ["消耗品", "Supplies"], ["壁紙", "Wallpapers"], ["設定", "Settings"], ["装備中", "Equipped"], ["装備する", "Equip"], ["ウォータージェット機", "Water Jet machine"], ["芸術品のカット加工に必要", "Required for cutting art pieces"], ["所持済み", "Owned"], ["研磨剤の在庫: ", "Abrasive stock: "], ["研磨剤 ×", "Abrasive ×"], ["仕上げの研磨剤を塗る作業に使う", "Used when applying abrasive in finishing"], ["加工設備(一度買えば使い放題)", "Processing equipment (buy once, use forever)"], ["有料の壁紙", "Premium wallpaper"], ["無料の壁紙", "Free wallpaper"], ["使用中", "In use"], ["使う", "Use"], ["職人名", "Artisan name"], ["名前を変更", "Change name"], ["売却 ", "Sold "], ["回　累計利益 ", " times  Total profit "], ["最高評価 ", "Best grade "], ["　芸術品 ", "  Art pieces "], ["個", ""], ["サウンド(ASMR)", "Sound (ASMR)"], ["研磨やカットの音", "Polishing and cutting sounds"], ["データ初期化", "Reset data"], ["所持金・道具・壁紙をすべて消去", "Erase cash, tools and wallpapers"], ["もう一度押す", "Press again"], ["初期化", "Reset"], ["きらきら粒子", "Sparkle particles"], ["空中に浮かぶ粒子の表示", "Show floating particles"], ["名前", "Name"], ["作品の写真", "Photo of your work"], ["黒曜石", "Obsidian"], ["大理石", "Marble"], ["黄鉄鉱", "Pyrite"], ["蛍石", "Fluorite"], ["方解石", "Calcite"], ["ローズクォーツ", "Rose Quartz"], ["虎目石", "Tiger's Eye"], ["瑪瑙", "Agate"], ["孔雀石", "Malachite"], ["琥珀", "Amber"], ["シトリン", "Citrine"], ["ラピスラズリ", "Lapis Lazuli"], ["ターコイズ", "Turquoise"], ["ペリドット", "Peridot"], ["ブルートパーズ", "Blue Topaz"], ["トルマリン", "Tourmaline"], ["カーネリアン", "Carnelian"], ["アクアマリン", "Aquamarine"], ["ロードクロサイト", "Rhodochrosite"], ["スピネル", "Spinel"], ["タンザナイト", "Tanzanite"], ["ジルコン", "Zircon"], ["ヘリオドール", "Heliodor"], ["モルガナイト", "Morganite"], ["ラブラドライト", "Labradorite"], ["真珠", "Pearl"], ["珊瑚", "Coral"], ["パライバトルマリン", "Paraiba Tourmaline"], ["インペリアルトパーズ", "Imperial Topaz"], ["ツァボライト", "Tsavorite"], ["デマントイド", "Demantoid"], ["ブラックオパール", "Black Opal"], ["ファイアオパール", "Fire Opal"], ["スフェーン", "Sphene"], ["カイヤナイト", "Kyanite"], ["アレキサンドライト", "Alexandrite"], ["パパラチア", "Padparadscha"], ["レッドベリル", "Red Beryl"], ["ピンクダイヤ", "Pink Diamond"], ["ブルーダイヤ", "Blue Diamond"], ["ペインタイト", "Painite"]].sort((a,b)=>b[0].length-a[0].length);
+I18N.unshift(['突然変異ハンター','Mutation Hunter'],['Gorgeousハンター','Gorgeous Hunter'],['レッドダイヤモンド','Red Diamond'],['キョウチュウサイト','Kyawthuite'],['陰陽','Yin-Yang'],['突然変異','Mutation'],['リズム研磨','Rhythm polish'],['レーザー彫刻','Laser etching'],['気泡除去','Bubble removal'],['精密徐冷','Precision annealing'],['共鳴調律','Resonance tuning'],['超音波ポリッシャー','Ultrasonic polisher'],['プラズマ研磨機','Plasma polisher'],['量子研磨機','Quantum polisher']);
+I18N.unshift(['ブラックスターサファイア','Black Star Sapphire'],['ロイヤルブルーサファイア','Royal Blue Sapphire'],['カラーチェンジガーネット','Color-Change Garnet'],['グランディディエライト','Grandidierite'],['スモーキークォーツ','Smoky Quartz'],['ジェレミェヴァイト','Jeremejevite'],['ブラッドストーン','Bloodstone'],['ピジョンブラッド','Pigeon Blood Ruby'],['アベンチュリン','Aventurine'],['クリソプレーズ','Chrysoprase'],['アポフィライト','Apophyllite'],['ダイオプサイド','Diopside'],['モアッサナイト','Moissanite'],['ソーダライト','Sodalite'],['ロードナイト','Rhodonite'],['サンストーン','Sunstone'],['アマゾナイト','Amazonite'],['カルセドニー','Chalcedony'],['クンツァイト','Kunzite'],['アイオライト','Iolite'],['ベニトアイト','Benitoite'],['ヘマタイト','Hematite'],['ジャスパー','Jasper'],['ジェダイト','Jadeite'],['ラリマー','Larimar']);
+I18N.unshift(['インベスト','Invest'],['この石を売る','Sell'],['この石を展示する','Display this gem'],['展示ケースが満杯','Display case full'],['展示すると1分ごとに価値が ×0.1〜×10 の範囲で上下します。展示した石は元に戻せず、売却のみ可能です。','Displayed gems lose or gain value every minute (×0.1 to ×10). They cannot be taken back, only sold.'],['展示ケース拡張','Display Case Expansion'],['インベストの展示枠が+1(最大13枠)','+1 Invest display slot (max 13)'],['展示中の合計価値','Total displayed value'],['展示時からの増減','Change since display'],['空きスロット','Empty slot'],['展示した石は元に戻せません。売却のみ可能です。','Displayed gems cannot be taken back. You can only sell them.'],['現在の価値','Current value'],['展示時の価値','Value at display'],['仕入れ値','Purchase cost'],['累計増減','Total change'],['売却した場合の損益','P/L if sold'],['直近1分の変動','Last minute'],['倍率','Multiplier'],['最高値','Peak'],['最安値','Low'],['上昇 / 下落','Ups / Downs'],['経過時間','Elapsed'],['次の更新まで','Next update'],['変動の荒さ','Volatility'],['連続','Streak'],['もう一度押して売却','Tap again to sell'],['この展示物を売却する','Sell this exhibit'],['一覧に戻る','Back'],['ドラッグで回転 / ホイールで拡大','Drag to rotate / wheel to zoom'],['計測中','Measuring'],['穏やか','Calm'],['やや荒い','Choppy'],['大荒れ','Wild'],['インベスト','Invest'],);
+I18N.unshift(["ウォーターメロントルマリン","Watermelon Tourmaline"],["コーンフラワーサファイア","Cornflower Sapphire"],["レインボームーンストーン","Rainbow Moonstone"],["ロードライトガーネット","Rhodolite Garnet"],["トラピッチェエメラルド","Trapiche Emerald"],["ブルーレースアゲート","Blue Lace Agate"],["ミスティックトパーズ","Mystic Topaz"],["マンダリンガーネット","Mandarin Garnet"],["オレゴンサンストーン","Oregon Sunstone"],["ホットピンクスピネル","Hot Pink Spinel"],["パラサイトペリドット","Pallasite Peridot"],["シャンパントパーズ","Champagne Topaz"],["ブラックトルマリン","Black Tourmaline"],["イエローサファイア","Yellow Sapphire"],["ウォーターオパール","Water Opal"],["ラベンダージェイド","Lavender Jade"],["ファイアアゲート","Fire Agate"],["ホワイトトパーズ","White Topaz"],["ブルーガーネット","Blue Garnet"],["インディゴライト","Indicolite"],["マキシクスベリル","Maxixe Beryl"],["ピンクサファイア","Pink Sapphire"],["ボルダーオパール","Boulder Opal"],["コバルトスピネル","Cobalt Spinel"],["ブラックスピネル","Black Spinel"],["ルチルクォーツ","Rutilated Quartz"],["プラシオライト","Prasiolite"],["スーパーセブン","Super Seven"],["ピンクトパーズ","Pink Topaz"],["アルマンディン","Almandine"],["ブルーオパール","Blue Opal"],["イエローダイヤ","Yellow Diamond"],["グリーンダイヤ","Green Diamond"],["ブラックダイヤ","Black Diamond"],["ゴシェナイト","Goshenite"],["スタールビー","Star Ruby"],["アメトリン","Ametrine"],["ルベライト","Rubellite"],["モリオン","Morion"],["墨翠","Black Jade"],["亜種","Variant"],["原種","Parent"]);
+I18N.unshift(["ウレキサイト","Ulexite"],["ビスマス","Bismuth"]);
+I18N.unshift(["ガルガンチュア","Gargantuan"],["ヒュージ","Huge"],["タイタン","Titan"],["最大重量","Max weight"],["歩留まり","Yield"],["角度出し","Angle alignment"],["薬液調合","Chemical mixing"],["ラージ","Large"],["サイズ","Size"],["比重","Specific gravity"],["重さ","Weight"],["原石","Rough"]);
+I18N.unshift(["このブラウザでは使えません（PCのChrome・Edgeで対応）。「ファイルに書き出す」を定期的に使ってください","Not available in this browser (works in desktop Chrome/Edge). Use \"Export to file\" regularly"],["保存先ファイルを一度選ぶと、以後プレイ中は自動で上書き保存されます","Pick a save file once and it is overwritten automatically while you play"],["ファイルの方が新しいデータです。どちらを使うか選んでください","The file has newer data. Choose which one to keep"],["ブラウザの許可待ちです（ボタンを押してください）","Waiting for browser permission (press the button)"],["保存に失敗しました。もう一度設定してください","Saving failed. Please set it up again"],["ファイル自動保存","Auto-save to file"],["ファイルを読み込む","Load file"],["自動保存中","Auto-saving"],["保存先を選ぶ","Choose file"],["選び直す","Choose again"],["許可する","Allow"],["上書き","Overwrite"],["解除","Unlink"]);
+I18N.unshift(["（直前の状態は自動バックアップから復元できます）", " (the previous state can be restored from automatic backups)"],["バックアップファイルのデータに置き換える", "Replace data with a backup file"],["全データをバックアップファイルとして保存", "Save all data as a backup file"],["バックアップファイルを書き出しました", "Backup file exported"],["ファイルのデータを読み込みました", "Data imported from file"],["前回のデータを自動復元しました", "Previous data was restored automatically"],["バックアップから復元しました", "Restored from backup"],["このファイルは読み込めません", "This file cannot be imported"],["データ保護（完全記憶）", "Data protection (full memory)"],["ファイルから読み込む", "Import from file"],["ファイルに書き出す", "Export to file"],["ファイル書き出し", "File export"],["自動バックアップ", "Automatic backups"],["別タブの保存分", "Saved in another tab"],["読み込み待ち", "Ready to import"],["置き換える", "Replace"],["初期化前", "Before reset"],["自動記録", "Auto snapshot"],["日次記録", "Daily snapshot"],["本体保存", "Main save"],["予備保存", "Backup save"],["最終保存", "Last saved"],["読み込む", "Import"],["書き出す", "Export"],["復元前", "Before restore"],["永続化", "Persistent"],["未許可", "Not granted"],["未実施", "never"],["保存分", " saved"],["取消", "Cancel"],["復元", "Restore"]);
+const JP=/[\u3040-\u30ff\u4e00-\u9fff]/,en=()=>S.lang==='en';
+function T(v){if(!en()||typeof v!=='string'||!JP.test(v))return v;for(const[k,e]of I18N)if(v.includes(k))v=v.split(k).join(e);return v}
+for(const[P,K]of[[Element.prototype,'innerHTML'],[Node.prototype,'textContent']]){const d=Object.getOwnPropertyDescriptor(P,K);Object.defineProperty(P,K,{get(){return d.get.call(this)},set(v){d.set.call(this,T(v))},configurable:true})}
+function applyLang(){document.documentElement.lang=S.lang==='en'?'en':'ja';$('nameIn').placeholder=T('名前');$('photoImg').alt=T('作品の写真');
+  const w=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT);let n;while(n=w.nextNode()){if(n.parentNode.closest('#menu,#resC,#shop,script'))continue;if(n._o===undefined)n._o=n.nodeValue;const v=T(n._o);if(n.nodeValue!==v)n.nodeValue=v}}
+const RICH={8:'repeating-radial-gradient(circle at 50% 120%,rgba(255,200,60,0) 0 40px,rgba(255,120,20,.2) 48px,rgba(255,200,60,0) 60px),radial-gradient(ellipse 90% 40% at 50% 105%,rgba(255,140,30,.75),transparent 70%),radial-gradient(ellipse 80% 60% at 50% 42%,#8a2a14,#1c0a06 75%)',10:'radial-gradient(1.5px 1.5px at 20% 30%,#fff,transparent),radial-gradient(1px 1px at 60% 70%,#fff,transparent),radial-gradient(2px 2px at 80% 20%,#cfe0ff,transparent),radial-gradient(1.5px 1.5px at 35% 82%,#fff,transparent),radial-gradient(1px 1px at 90% 60%,#fff,transparent),radial-gradient(ellipse 50% 35% at 30% 60%,rgba(140,80,255,.35),transparent 70%),radial-gradient(ellipse 45% 30% at 75% 35%,rgba(60,140,255,.3),transparent 70%),radial-gradient(ellipse 80% 60% at 50% 42%,#262a66,#05061a 75%)',11:'repeating-linear-gradient(45deg,rgba(255,236,160,.1) 0 2px,transparent 2px 22px),repeating-linear-gradient(-45deg,rgba(255,236,160,.1) 0 2px,transparent 2px 22px),radial-gradient(ellipse 60% 45% at 50% 40%,rgba(255,235,150,.4),transparent 70%),radial-gradient(ellipse 80% 60% at 50% 42%,#9a7a20,#1c1606 78%)',16:'radial-gradient(ellipse 60% 40% at 50% 0%,rgba(255,215,120,.38),transparent 70%),repeating-linear-gradient(90deg,rgba(255,215,140,.07) 0 2px,transparent 2px 60px),repeating-linear-gradient(0deg,rgba(0,0,0,.18) 0 40px,rgba(255,255,255,.03) 40px 41px),radial-gradient(ellipse 80% 60% at 50% 42%,#8a2548,#1a0a1e 75%)',17:'radial-gradient(ellipse 70% 14% at 50% 48%,rgba(190,170,255,.5),transparent 70%),radial-gradient(1.5px 1.5px at 15% 20%,#fff,transparent),radial-gradient(1px 1px at 70% 80%,#fff,transparent),radial-gradient(2px 2px at 85% 25%,#dcd0ff,transparent),radial-gradient(1px 1px at 40% 15%,#fff,transparent),radial-gradient(ellipse 80% 60% at 50% 42%,#3a1f6a,#02030f 75%)',20:'repeating-radial-gradient(ellipse at 50% 0%,rgba(120,255,240,0) 0 30px,rgba(120,255,240,.1) 36px,rgba(120,255,240,0) 44px),radial-gradient(circle at 25% 75%,rgba(255,255,255,.22) 0 3px,transparent 4px),radial-gradient(circle at 70% 55%,rgba(255,255,255,.18) 0 4px,transparent 5px),radial-gradient(ellipse 80% 60% at 50% 42%,#14909a,#02121c 75%)',22:'linear-gradient(115deg,transparent 20%,rgba(80,255,170,.28) 38%,transparent 56%),linear-gradient(75deg,transparent 35%,rgba(140,100,255,.28) 55%,transparent 75%),radial-gradient(ellipse 80% 60% at 50% 42%,#1f7a5a,#0a1038 75%)',23:'repeating-conic-gradient(from 0deg at 50% 40%,rgba(255,225,120,.26) 0 6deg,transparent 6deg 24deg),radial-gradient(circle at 50% 40%,rgba(255,240,170,.65),transparent 38%),radial-gradient(ellipse 80% 60% at 50% 42%,#d4a93a,#1a0a00 78%)'};
+function applyWp(){const w=WP[S.wp],i=S.wp%3;if(RICH[S.wp]){document.body.style.background=RICH[S.wp];return}
+  const pat=i===1?'repeating-linear-gradient(90deg,rgba(255,255,255,.035) 0 2px,transparent 2px 26px),':i===2?'radial-gradient(rgba(255,255,255,.05) 1.5px,transparent 2px) 0 0/22px 22px,':'';
+  document.body.style.background=pat+'radial-gradient(ellipse 80% 60% at 50% 42%,'+w[2]+','+w[3]+' 72%)'}
+
+// ---- audio ----
+let AC,master,rub,jetN,cmp,sp=0;
+function audioInit(){if(AC)return;try{AC=new(window.AudioContext||window.webkitAudioContext)();master=AC.createGain();master.gain.value=S.snd?.8:0;master.connect(AC.destination);
+  const len=AC.sampleRate*2,buf=AC.createBuffer(1,len,AC.sampleRate),d=buf.getChannelData(0);for(let i=0;i<len;i++)d[i]=Math.random()*2-1;
+  const ch=(type,f,Q)=>{const s=AC.createBufferSource();s.buffer=buf;s.loop=true;const fl=AC.createBiquadFilter();fl.type=type;fl.frequency.value=f;fl.Q.value=Q;const g=AC.createGain();g.gain.value=0;s.connect(fl);fl.connect(g);g.connect(master);s.start();return{g,fl}};
+  rub=ch('bandpass',2500,1.2);jetN=ch('highpass',3500,.5);cmp=ch('lowpass',900,.8)}catch(e){AC=null}}
+function ping(f,d,v,type){if(!AC)return;const t=AC.currentTime,o=AC.createOscillator(),g=AC.createGain();o.type=type||'sine';o.frequency.value=f;g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(.0001,t+d);o.connect(g);g.connect(master);o.start(t);o.stop(t+d)}
+const chime=()=>[660,880,1100,1320].forEach((f,i)=>setTimeout(()=>ping(f,.5,.18),i*110));
+const crack=()=>{ping(110,.5,.5,'sawtooth');ping(70,.7,.5,'square')};
+
+// ---- three ----
+const renderer=new THREE.WebGLRenderer({canvas:$('c'),antialias:true,alpha:true,preserveDrawingBuffer:true});
+renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+const scene=new THREE.Scene(),camera=new THREE.PerspectiveCamera(40,1,.1,50);camera.position.z=4.6;
+const group=new THREE.Group();scene.add(group);
+const pgA=new Float32Array(360);for(let i=0;i<120;i++){const r=1.6+Math.random()*1.6,t=Math.random()*6.28,u=Math.acos(Math.random()*2-1);pgA[i*3]=r*Math.sin(u)*Math.cos(t);pgA[i*3+1]=r*Math.cos(u);pgA[i*3+2]=r*Math.sin(u)*Math.sin(t)}
+const pg=new THREE.BufferGeometry();pg.setAttribute('position',new THREE.BufferAttribute(pgA,3));
+const pts=new THREE.Points(pg,new THREE.PointsMaterial({size:.035,color:0xbfe9ff,transparent:true,opacity:.75,blending:THREE.AdditiveBlending,depthWrite:false}));scene.add(pts);
+function applyFx(){pts.visible=S.fx!==false}applyFx();
+let intro=0,spin=0;
+scene.add(new THREE.AmbientLight(0xffffff,.7));const dl=new THREE.DirectionalLight(0xffffff,1.2);dl.position.set(2,3,4);scene.add(dl);
+const c2=$('cut2'),x2=c2.getContext('2d');
+function resize(){if(!innerWidth||!innerHeight)return;renderer.setSize(innerWidth,innerHeight,false);camera.aspect=innerWidth/innerHeight;camera.fov=innerWidth<innerHeight?52:40;camera.updateProjectionMatrix();camera.position.z=Math.min(8,Math.max(4.6,1.5/(Math.tan(camera.fov*Math.PI/360)*camera.aspect)));c2.width=innerWidth;c2.height=innerHeight;if(ph==='cut')drawCut()}
+const VS=`attribute float polish;attribute float coat;varying float vP;varying float vC;varying vec3 vN;varying vec3 vV;varying vec3 vO;varying vec3 vNo;
+void main(){vP=polish;vC=coat;vO=position;vNo=normal;vN=normalize(normalMatrix*normal);vec4 mv=modelViewMatrix*vec4(position,1.);vV=-mv.xyz;gl_Position=projectionMatrix*mv;}`;
+const FS=`uniform vec3 uGem;uniform vec3 uRock;uniform vec4 uP;uniform float uStar;uniform float uShine;uniform mat3 uNM;uniform float uTime;uniform float uMut;uniform float uSpk;uniform float uTex;uniform float uRev;uniform float uRevM;uniform float uTV;varying float vC;
+varying float vP;varying vec3 vN;varying vec3 vV;varying vec3 vO;varying vec3 vNo;
+float h(vec3 p){return fract(sin(dot(p,vec3(12.9898,78.233,37.719)))*43758.5453);}
+float vn(vec3 p){vec3 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(mix(h(i),h(i+vec3(1.,0.,0.)),f.x),mix(h(i+vec3(0.,1.,0.)),h(i+vec3(1.,1.,0.)),f.x),f.y),mix(mix(h(i+vec3(0.,0.,1.)),h(i+vec3(1.,0.,1.)),f.x),mix(h(i+vec3(0.,1.,1.)),h(i+vec3(1.,1.,1.)),f.x),f.y),f.z);}
+void main(){
+vec3 V=normalize(vV),L=normalize(vec3(.4,.7,.6));
+vec3 N0=normalize(vN);
+float dif0=max(dot(N0,L),0.)*.7+.3;
+float gr=.8+.2*vn(vO*12.)+.1*vn(vO*40.)+.05*sin(vO.x*23.)*sin(vO.y*19.+vO.z*7.);
+vec3 rock=uRock*gr*dif0;
+float k=smoothstep(.12,.85,vP);
+vec3 fo=floor(normalize(vNo)*2.2+.5)+vec3(.001,.002,.003);
+vec3 Nf=normalize(uNM*normalize(fo));
+vec3 N=normalize(mix(N0,Nf,uP.y*k));
+float dif=max(dot(N,L),0.)*.7+.3;
+vec3 R=reflect(-V,N);
+vec3 env=mix(vec3(.04,.06,.09),vec3(.75,.88,1.),smoothstep(-.3,.9,R.y));
+vec3 Ls=normalize(vec3(.3,.6,.7));
+float rl=max(dot(R,Ls),0.);
+float bx=smoothstep(.86,.92,rl)*1.5;
+float glt=smoothstep(.95,.98,dot(R,normalize(vec3(-.6,.2,.5))))*1.1;
+float fr=pow(1.-max(dot(N,V),0.),3.);
+vec3 Tr=refract(-V,N,.75);
+float ca=pow(max(0.,sin(Tr.x*14.)*sin(Tr.y*14.+Tr.z*9.)),4.);
+vec3 body=uGem*(.25+.75*dif);
+vec3 clr=uGem*(.45+.9*ca)+env*.28;
+vec3 gem=mix(body,clr,uP.x)+env*(.1+.45*fr)*(1.-uP.x*.3)+uGem*fr*.5;
+vec3 ir=.5+.5*cos(6.2832*(dot(N,V)*1.6+vec3(0.,.33,.67)+vO.x*.4));
+gem=mix(gem,gem*.45+ir*.85,uP.z);
+float vein=smoothstep(.7,.9,sin(vO.x*9.+sin(vO.y*7.))*sin(vO.z*8.+vO.y*3.));
+gem=mix(gem,gem*.55+vec3(.35)*dif,vein*uP.w);
+vec3 rb=.5+.5*cos(6.2832*(rl*2.+vec3(0.,.33,.67)));
+gem+=rb*pow(rl,10.)*uP.x*.6;
+if(uTV>0.){vec3 Vd=normalize(vV);vec3 acc=vec3(0.);
+for(int q=0;q<4;q++){float fq=float(q);vec2 pp=vO.xy-Vd.xy*(.12+.16*fq)*1.4;
+float fib=vn(vec3(pp*46.,fq));
+float ring=smoothstep(.06,.0,abs(length(pp-vec2(.05*fq,-.04))-.28-.1*fq));
+float ln=smoothstep(.05,.0,abs(sin((pp.x+pp.y*.6)*(5.+fq*2.))));
+acc+=mix(vec3(.55,.75,1.),vec3(1.,.9,.7),fq/3.)*(ring*.9+ln*.35)*(.5+.5*fib)/(1.+fq*.5);}
+gem=mix(gem,gem*.55+acc*.9+vec3(.06,.08,.1),k*.85);
+gem+=vec3(.9,.95,1.)*pow(.5+.5*sin(vO.y*180.+vO.x*40.),6.)*.06*k;}
+float ang=atan(N.y,N.x);
+gem+=vec3(1.)*pow(abs(cos(3.*ang)),22.)*smoothstep(.5,.97,N.z)*uStar;
+gem+=(bx+glt)*(1.+.7*vC);
+gem*=1.+.14*vC;
+vec3 paste=vec3(.96,.9,.72)*(.6+.4*dif);
+float pa=smoothstep(.02,.12,vC)*(1.-smoothstep(.55,1.,vC))*.9*(.88+.12*vn(vO*28.));
+if(uTex>.5){vec3 tc;float tx=uTex;
+if(tx<1.5)tc=vec3(.07,.07,.1)*(.7+.6*vn(vO*35.))+vec3(.5,.6,.9)*pow(max(dot(reflect(-V,N0),L),0.),12.)*1.2;
+else if(tx<2.5)tc=mix(uGem*.55,vec3(.9),.35)*(.55+.45*sin(vO.y*55.+sin(vO.x*9.)*2.))*(.6+.5*dif0);
+else if(tx<3.5)tc=(.35+.5*vec3(h(floor(vNo*3.5)),h(floor(vNo*3.5)+1.),h(floor(vNo*3.5)+2.)))*dif0*.9+vec3(.6)*pow(max(dot(reflect(-V,N0),L),0.),20.);
+else if(tx<4.5){float b=floor(vO.y*14.+sin(vO.x*4.)*.7);tc=(.3+.55*vec3(h(vec3(b,1.,2.)),h(vec3(b,3.,4.)),h(vec3(b,5.,6.))))*dif0;}
+else tc=mix(vec3(.18,.13,.1),uGem*1.1+.2,smoothstep(.42,.58,vn(vO*2.5+vec3(3.,1.,7.))))*dif0*(.8+.3*vn(vO*4.));
+rock=tc;}
+float tm=uTime;
+if(uSpk>0.){rock+=vec3(1.,.97,.9)*pow(.5+.5*sin(vO.x*10.+vO.y*8.+tm*3.),8.)*1.1+uGem*.4*(.5+.5*sin(tm*2.+vO.y*6.));gem+=vec3(1.)*pow(.5+.5*sin(vO.y*9.-vO.z*7.+tm*3.),10.)*.6;}
+if(uMut>.5){vec3 mc=vec3(0.);float m=uMut;
+if(m<1.5)mc=mix(vec3(1.,.7,.15),vec3(1.,.97,.6),.5+.5*sin(vO.y*4.+vO.x*3.+tm*1.5))*(.8+.5*pow(.5+.5*sin(vO.y*5.+vO.x*3.+tm*2.),2.));
+else if(m<2.5)mc=mix(vec3(.6,1.,.1),vec3(.1,.8,.25),.5+.5*sin(vO.y*6.+tm*2.))*(.8+.4*sin(tm*4.+vO.x*9.));
+else if(m<3.5)mc=mix(vec3(.03),vec3(.97),smoothstep(-.06,.06,sin(atan(vO.z,vO.x)+vO.y*1.4+tm*.5)));
+else if(m<4.5)mc=mix(vec3(.25,0.,.02),vec3(.95,.02,.05),smoothstep(-.6,.9,vO.y+.25*sin(vO.x*7.+tm)))*(.7+.4*sin(tm*2.+vO.y*10.));
+else if(m<5.5)mc=.5+.5*cos(6.2832*(vO.y*.5+vO.x*.3+tm*.25+vec3(0.,.33,.67)));
+else if(m<6.5){float e=pow(1.-max(dot(N0,V),0.),2.5);mc=mix(vec3(.02,0.,.06),vec3(.25,.05,.55),.5+.5*sin(vO.y*3.+vO.x*2.+tm*.8))+vec3(.45,.1,.9)*e*1.6+vec3(.6,.3,1.)*e*(.5+.5*sin(tm*1.5+vO.y*5.))*.8;}
+else{mc=.5+.5*cos(6.2832*(vO.y*.6+tm*.35+vec3(0.,.33,.67)));mc=mix(mc,vec3(1.,.85,.4),.45)+vec3(1.,.9,.6)*pow(.5+.5*sin(vO.y*7.+vO.x*5.+tm*2.5),6.)*.9+pow(1.-max(dot(N0,V),0.),3.)*vec3(1.,.8,.5)*1.2;}
+float ba=m>5.5?.9:.62;gem=mix(gem,mc*(.55+.6*dif),ba*.8);rock=mix(rock,mc*(.5+.6*dif0),ba);}
+vec3 col=mix(rock,gem,k);
+col*=1.-.3*uShine*(1.-smoothstep(.6,.95,vC));
+if(uRev>.001){
+float un=uRevM>.5?1.-smoothstep(.25,.95,vC):1.-smoothstep(.9,.99,vP);
+float pl=.5+.5*sin(uTime*3.4);
+float fw=max(fwidth(un),.0009);
+float ed=1.-smoothstep(0.,fw*2.4,abs(un-.5));
+float ed2=1.-smoothstep(0.,fw*5.,abs(un-.5));
+vec3 gl=vec3(1.,.8,.22);
+col=mix(col,col*.55+gl*.5,un*.55*uRev);
+col+=gl*un*(.22+.38*pl)*uRev;
+col+=vec3(1.,.93,.55)*ed2*.35*uRev;
+col+=vec3(1.,1.,.85)*ed*(.9+.6*pl)*uRev;
+}
+gl_FragColor=vec4(mix(col,paste,pa),1.);}`;
+
+let szF=1,szT=0,g0=1,p99=-1,mesh,pos,dirs,rough,sm,pol,sum,count,stone,cost,luck,done=false,mode='pol',uni,ph='polish';
+let proc={},procMul=1,procPts=0,biHeat=false,procIv=null,coat,coatSum=0,cov=0,comp=0,compDone=false,art=null,artAcc=0,cutPath=[],cidx=0,stress=0,cutOn=false,tol=24,lim=60,cutSi=0,coatClear=false;
+const FULL=.97,freeCoat=()=>art!==null&&!compDone;
+function pick(){const L=S.up.luck,ws=STONES.map((s,i)=>s.w*(s.base<500?8:s.base<1500?3:s.base<5000?1:.5)*(1+L*.3*i*10/(STONES.length-1))),tot=ws.reduce((a,b)=>a+b,0);let t=Math.random()*tot;for(let i=0;i<ws.length;i++){if((t-=ws[i])<=0)return STONES[i]}return STONES[0]}
+function nz(x,y,z,o){return Math.sin(x*3.1+o[0])*Math.sin(y*2.7+o[1])*Math.sin(z*3.3+o[2])+.5*Math.sin(x*6.3+y*5.1+z*4.7+o[0])+.25*Math.sin(x*12+z*11.3+y*9.7+o[1])}
+function setPos(i){const p=pol[i],e=p*p*(3-2*p),r=rough[i]+(sm[i]-rough[i])*e;pos.setXYZ(i,dirs[i*3]*r,dirs[i*3+1]*r,dirs[i*3+2]*r)}
+function upd(){pos.needsUpdate=true;mesh.geometry.attributes.polish.needsUpdate=true;mesh.geometry.attributes.coat.needsUpdate=true;mesh.geometry.computeVertexNormals()}
+const MUTS=[null,{n:'Shiny',m:2,c:'#ffd84a',w:60},{n:'Acid',m:3,c:'#9dff2e',w:40},{n:'陰陽',m:7,c:'#e8e8e8',w:20},{n:'Blood',m:5,c:'#ff2a3a',w:25},{n:'Rainbow',m:10,c:'#ff9bf0',w:10},{n:'Void',m:66,c:'#a46bff',w:1.2},{n:'Gorgeous',m:100,c:'#ffe27a',w:.35}];
+let mut=0,shTex=0;
+function pickMut(){const k=(1+.1*S.up.luck)*(1+.5*S.up.mutHunt),ws=MUTS.map((m,i)=>i?m.w*k*(i===7?Math.pow(1.35,S.up.gorHunt):1):8409);let t=Math.random()*ws.reduce((a,b)=>a+b,0);for(let i=0;i<ws.length;i++){if((t-=ws[i])<=0)return i}return 0}
+// 35 common shapes = 7 kinds x 5 variants
+function COMMON(i,o){const k=i%7,v=Math.floor(i/7),am=.05+.025*((i*3)%4),
+ el=(a,b,c)=>(x,y,z)=>1/Math.sqrt(x*x/(a*a)+y*y/(b*b)+z*z/(c*c));let g;
+ if(k===0)return(x,y,z)=>1.02+(.1+.04*v)*nz(x,y,z,o);
+ if(k===1)g=el(1.4+.05*v,.92+.03*v,1.15);
+ else if(k===2)g=el(1.3+.08*v,.95,.95);
+ else if(k===3){const e=el(1.4,1.02,.97),d=.18+.03*v;g=(x,y,z)=>e(x,y,z)*(1-d*Math.max(0,z)*Math.exp(-x*x*2))}
+ else if(k===4){const e=el(1.5,1.1,1.1),d=.12+.02*v;g=(x,y,z)=>e(x,y,z)*(1-d*Math.exp(-x*x*8))}
+ else if(k===5){const e=el(1.05,1.25,1.05),d=.1+.03*v;g=(x,y,z)=>e(x,y,z)*(1+d*y)}
+ else{const p=2.6+.5*v;g=(x,y,z)=>1/Math.pow(Math.pow(Math.abs(x),p)+Math.pow(Math.abs(y),p)+Math.pow(Math.abs(z),p),1/p)}
+ return(x,y,z)=>g(x,y,z)+am*nz(x,y,z,o)}
+function mkShape(o){const ty=Math.random(),R=()=>Math.random()*2-1,nm=v=>{const l=Math.hypot(v[0],v[1],v[2])||1;return[v[0]/l,v[1]/l,v[2]/l]},rv=()=>nm([R(),R(),R()]),
+ cr=(a,b)=>[a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]],
+ poly=(P,cap)=>(x,y,z)=>{let r=cap;for(const p of P){const c=x*p[0]+y*p[1]+z*p[2];if(c>.03){const s=p[3]/c;if(s<r)r=s}}return r+.02*nz(x,y,z,o)};
+ let f;
+ shTex=ty<.94?0:ty<.955?1:ty<.967?2:ty<.979?3:ty<.99?4:5;
+ if(ty<.94)f=COMMON(Math.floor(Math.random()*35),o);
+ else if(ty<.955){const D=[];for(let i=0,K=3+Math.floor(Math.random()*3);i<K;i++)D.push([...rv(),.25+Math.random()*.25]);
+  f=(x,y,z)=>{let m=0;for(const d of D){const c=x*d[0]+y*d[1]+z*d[2];if(c>.6){const s=Math.pow((c-.6)/.4,1.5)*d[3];if(s>m)m=s}}return .98+.03*nz(x,y,z,o)+m}}
+ else if(ty<.967){const a=rv(),u=nm(cr(a,rv())),w=cr(a,u),P=[];for(let j=0;j<6;j++){const t=j*Math.PI/3,s=[u[0]*Math.cos(t)+w[0]*Math.sin(t),u[1]*Math.cos(t)+w[1]*Math.sin(t),u[2]*Math.cos(t)+w[2]*Math.sin(t)];
+   P.push([...s,.9+Math.random()*.05]);const up=nm([a[0]*.8+s[0]*.6,a[1]*.8+s[1]*.6,a[2]*.8+s[2]*.6]),dn=nm([-a[0]*.8+s[0]*.6,-a[1]*.8+s[1]*.6,-a[2]*.8+s[2]*.6]);P.push([...up,1.45+Math.random()*.3]);P.push([...dn,1.05])}f=poly(P,1.7)}
+ else if(ty<.979){const P=[];for(let i=0;i<14;i++)P.push([...rv(),.9+Math.random()*.18]);f=poly(P,1.45)}
+ else if(ty<.99){const a=rv(),P=[];for(let i=0;i<5;i++){const v=rv(),d=a[0]*v[0]+a[1]*v[1]+a[2]*v[2],n=nm([v[0]-a[0]*d,v[1]-a[1]*d,v[2]-a[2]*d]);P.push([...n,.78+Math.random()*.1])}
+  [1,-1].forEach(s=>[0,1].forEach(()=>{const v=rv(),n=nm([a[0]*s+v[0]*.7,a[1]*s+v[1]*.7,a[2]*s+v[2]*.7]);P.push([...n,1.4])}));f=poly(P,1.75)}
+ else f=(x,y,z)=>1.08+.2*Math.sin(x*2.6+o[0])*Math.sin(y*2.3+o[1])*Math.sin(z*2.8+o[2]);
+ return(x,y,z)=>Math.max(.92,f(x,y,z))}
+const SZN=['','ラージ','ヒュージ','タイタン','ガルガンチュア'],SZM=[1,1.5,3,5,10];
+function fmtG(g){return g>=1000?(g/1000).toFixed(2)+'kg':g>=100?Math.round(g)+'g':g.toFixed(1)+'g'}
+const curW=()=>g0*(1-.2*q())*(art!==null?.85:1);
+function newStone(){
+  if(S.bi){stone=BI;S.bi=0}else stone=pick();mut=pickMut();{const r=Math.random();szT=r<.0001?4:r<.0006?3:r<.0036?2:r<.0236?1:0;szF=(.8+Math.random()*.4)*SZM[szT];g0=stone.sg*4*szF}luck=(.9+Math.random()*.4)*szF;if(stone.secret){setTimeout(()=>{if(stone&&stone.secret){qtoast('<small>SECRET</small><b>ビスマスを発見！</b>');chime();burst(innerWidth/2,innerHeight/2,80,true)}},1400)}
+  cost=Math.min(S.money,Math.round(stone.base*szF*.25*(.8+Math.random()*.4)));S.money-=cost;
+  const g=new THREE.SphereGeometry(1,80,56);pos=g.attributes.position;count=pos.count;
+  dirs=new Float32Array(count*3);rough=new Float32Array(count);sm=new Float32Array(count).fill(.86);pol=new Float32Array(count);sum=0;p99=-1;
+  const o=[Math.random()*6,Math.random()*6,Math.random()*6];
+  const SP=mkShape(o);let mxR=1;for(let i=0;i<count;i++){const v=new THREE.Vector3(pos.getX(i),pos.getY(i),pos.getZ(i)).normalize();dirs.set([v.x,v.y,v.z],i*3);rough[i]=SP(v.x,v.y,v.z);if(rough[i]>mxR)mxR=rough[i]}
+  g.setAttribute('polish',new THREE.BufferAttribute(pol,1));coat=new Float32Array(count);coatSum=0;cov=0;g.setAttribute('coat',new THREE.BufferAttribute(coat,1));
+  {const W=81,H=57;let a=Float32Array.from(rough);for(let pass=0;pass<8;pass++){const b=new Float32Array(count);for(let iy=0;iy<H;iy++)for(let ix=0;ix<80;ix++){let t=0,c=0;for(let dy=-1;dy<=1;dy++){const jy=iy+dy;if(jy<0||jy>=H)continue;for(let dx=-1;dx<=1;dx++){t+=a[jy*W+(ix+dx+80)%80];c++}}b[iy*W+ix]=t/c}for(let iy=0;iy<H;iy++)b[iy*W+80]=b[iy*W];a=b}
+  for(let i=0;i<count;i++)sm[i]=a[i]*.93}
+  for(let i=0;i<count;i++)setPos(i);
+  let cx=0,cy=0,cz=0;for(let i=0;i<count;i++){cx+=pos.getX(i);cy+=pos.getY(i);cz+=pos.getZ(i)}cx/=count;cy/=count;cz/=count;
+  g.computeVertexNormals();
+  uni={uGem:{value:new THREE.Vector3(...stone.c)},uRock:{value:new THREE.Vector3(...stone.r)},uP:{value:new THREE.Vector4(stone.t,stone.f,stone.i,stone.v)},uStar:{value:stone.s},uShine:{value:0},uNM:{value:new THREE.Matrix3()},uTime:{value:0},uMut:{value:mut},uSpk:{value:stone.x?1:0},uTex:{value:shTex},uRev:{value:0},uRevM:{value:0},uTV:{value:stone.n==='ウレキサイト'?1:0}};
+  const m=new THREE.ShaderMaterial({vertexShader:VS,fragmentShader:FS,uniforms:uni,extensions:{derivatives:true}});
+  if(mesh){group.remove(mesh);mesh.geometry.dispose();mesh.material.dispose()}
+  mesh=new THREE.Mesh(g,m);g.boundingSphere=new THREE.Sphere(new THREE.Vector3(),3);mesh.frustumCulled=false;{const fs=Math.min(1,1.3/mxR);mesh.scale.set(fs,.9*fs,fs);mesh._c=[cx*fs,cy*.9*fs,cz*fs];mesh._R=Math.min(1.5,Math.max(1,Math.max(...sm)*fs/.86))}group.add(mesh);uni.uNM.value=mesh.normalMatrix;
+  group.quaternion.setFromEuler(new THREE.Euler(Math.random()*.8,Math.random()*6,0));
+  done=false;comp=0;compDone=false;coatClear=false;art=null;artAcc=0;ph='polish';intro=1;resetInput();c2.style.pointerEvents='none';x2.clearRect(0,0,c2.width,c2.height);mode='pol';$('mPol').classList.add('on');$('mRot').classList.remove('on');proc={};procMul=1;procPts=0;biHeat=false;save();ui();if(mut){const mm=mut;setTimeout(()=>{if(stone&&mut===mm){qtoast('<b>突然変異！ '+MUTS[mm].n+' ×'+MUTS[mm].m+'</b>');if(mm>=5)burst(innerWidth/2,innerHeight/2,mm>=6?60:30,true)}},700)}
+  if(szT){const tt=szT;setTimeout(()=>{if(stone&&szT===tt){qtoast('<b>'+SZN[tt]+'サイズ！ 値段・大きさ ×'+SZM[tt]+'</b>');chime();if(tt>=2)burst(innerWidth/2,innerHeight/2,tt>=4?70:tt>=3?45:25,true)}},1100)}
+}
+const q=()=>sum/count;
+function value(broken){
+  if(broken)return stone.base*.04*luck;
+  return stone.base*(.04+.96*Math.pow(q(),3))*luck*(1+.1*S.up.bonus)*(1+.25*comp)*(art!==null?1.6+.8*artAcc:1)*procMul*(mut?MUTS[mut].m:1)}
+function score(){const Q=Math.pow(q(),2);return Math.min(100,(art!==null?100*(.5*Q+.15*comp+.35*Math.pow(Math.max(0,(artAcc-.5)*2),1.5)):92*(.8*Q+.2*comp))+procPts)}
+function gauge(l,v){$('gl').textContent=l;$('pct').textContent=Math.floor(v*100)+'%';$('bar').style.width=v*100+'%'}
+function ui(){
+  if(!stone)return;const t=tool(),lp=S.up.loupe;let h;
+  $('money').textContent=yen(S.money);
+  if(ph==='polish'){gauge('磨き度',q());
+    h=q()>=.97?'ピカピカ！仕上げに進もう':mode==='pol'?(t.hold?t.n+'を押し続けて磨こう':t.n+'でこすって磨こう'):'ドラッグで石を回そう';$('act').textContent='仕上げへ'}
+  else if(ph==='comp'){gauge('研磨剤',comp);h=coatClear?'研磨剤が<b>完全に消えました！</b>「完了」を押して終了':(art!==null?'削り面に研磨剤を塗って仕上げよう。':'')+'暗い所や白く残った所がなくなるまでこすり込もう(石を回して全体に)';$('act').textContent=coatClear?'完了':'戻る'}
+  else{gauge('カット',cutPath.length?cidx/cutPath.length:0);h='光の線をなぞってカット。外れると割れる！';$('act').textContent='中止'}
+  if(lp>=1)h='<b>'+stone.n+'</b>　'+h;
+  if(revOn&&ph!=='cut')h='<b style="color:#ffd76a">✦光る所が削り残し</b>　'+h;$('revB').style.display=$('idxB').style.display=ph==='cut'?'none':'';
+  if(mut)h='<b style="color:'+MUTS[mut].c+'">'+MUTS[mut].n+' ×'+MUTS[mut].m+'</b>　'+h;h='<span class="wt">⚖ '+fmtG(curW())+(lp>=1?'（比重 '+stone.sg+'）':'')+(szT?'　<b style="color:#ffb86b">'+SZN[szT]+' ×'+SZM[szT]+'</b>':'')+'</span><br>'+h;$('hint').innerHTML=h;uni.uShine.value=ph==='comp'?1:0;$('act').classList.toggle('ready',ph==='comp'&&coatClear);
+}
+// ---- input ----
+const ray=new THREE.Raycaster(),ndc=new THREE.Vector2();
+function hit(x,y){if(!mesh)return null;const r=renderer.domElement.getBoundingClientRect();if(!r.width||!r.height)return null;
+  ndc.set((x-r.left)/r.width*2-1,-((y-r.top)/r.height)*2+1);camera.updateMatrixWorld();group.updateMatrixWorld(true);ray.setFromCamera(ndc,camera);return ray.intersectObject(mesh)[0]||null}
+function brush(h,amt){
+  const lp=mesh.worldToLocal(h.point.clone()),RB0=tool().R*1.05*(1+.12*S.up.range)*Math.min(1,.75+.25*stone.hard),a=pos.array;let ch=false,RB=RB0;
+  if(h.face){for(const k of [h.face.a,h.face.b,h.face.c]){const x=a[k*3]-lp.x,y=a[k*3+1]-lp.y,z=a[k*3+2]-lp.z;RB=Math.max(RB,Math.sqrt(x*x+y*y+z*z)*1.12)}}
+  for(let i=0;i<count;i++){const x=a[i*3]-lp.x,y=a[i*3+1]-lp.y,z=a[i*3+2]-lp.z,d=Math.sqrt(x*x+y*y+z*z);
+    if(d<RB&&pol[i]<1){const np=Math.min(1,pol[i]+amt*(1-d/RB));sum+=np-pol[i];pol[i]=np;setPos(i);ch=true}}
+  if(ch){upd();ui();ftx()}
+}
+function coatBrush(h,amt){if(coatClear)return;const lp=mesh.worldToLocal(h.point.clone()),RB=.5,a=pos.array;let ch=false;
+  for(let i=0;i<count;i++){const x=a[i*3]-lp.x,y=a[i*3+1]-lp.y,z=a[i*3+2]-lp.z,d=Math.sqrt(x*x+y*y+z*z);
+    if(d<RB&&coat[i]<1){const n=Math.min(1,coat[i]+amt*(1-d/RB));if(n>=FULL&&coat[i]<FULL)cov++;coatSum+=n-coat[i];coat[i]=n;ch=true}}
+  if(ch){ftx();comp=Math.min(1,cov/count);mesh.geometry.attributes.coat.needsUpdate=true;if(Math.random()<.3)ping(500+Math.random()*300,.08,.05);
+    if(cov/count>=.995)clearCoat();else ui()}}
+function clearCoat(){coat.fill(1);cov=count;comp=1;coatClear=true;painting=false;mesh.geometry.attributes.coat.needsUpdate=true;chime();ui()}
+const spd=()=>Math.pow(Math.max(.6,stone.hard),1.2)*tool().r*(1+.3*S.up.speed);
+let down=false,painting=false,lx=0,ly=0,revOn=false,revV=0;
+const cv=$('c'),ptrs=new Map();
+function syncIn(){down=ptrs.size>0;painting=false;for(const p of ptrs.values())if(p.paint){painting=true;break}}
+function resetInput(){ptrs.clear();syncIn();sp=0}
+cv.addEventListener('pointerdown',e=>{if(!mesh||done||ph==='cut')return;audioInit();
+  lx=e.clientX;ly=e.clientY;
+  try{cv.setPointerCapture(e.pointerId)}catch(_){}
+  ptrs.set(e.pointerId,{x:lx,y:ly,paint:mode==='pol'&&!!hit(lx,ly)});syncIn()});
+cv.addEventListener('pointermove',e=>{
+  const p=ptrs.get(e.pointerId);if(!p||ph==='cut')return;
+  const dx=e.clientX-p.x,dy=e.clientY-p.y,mv=Math.hypot(dx,dy);p.x=lx=e.clientX;p.y=ly=e.clientY;sp=Math.max(sp,mv);
+  if(!p.paint){group.quaternion.premultiply(new THREE.Quaternion().setFromEuler(new THREE.Euler(dy*.01,dx*.01,0)));return}
+  if(ph==='comp'){const h=hit(p.x,p.y);if(h)coatBrush(h,Math.min(mv,40)*.006);return}
+  if(tool().hold)return;
+  const h=hit(p.x,p.y);if(h)brush(h,Math.min(mv,40)*.0010*spd());
+});
+const up=e=>{if(e&&e.pointerId!==undefined&&e.type!=='blur'&&e.type!=='pagehide'){ptrs.delete(e.pointerId);syncIn();return}resetInput()};
+cv.addEventListener('pointerup',up);cv.addEventListener('pointercancel',up);cv.addEventListener('lostpointercapture',up);
+cv.addEventListener('contextmenu',e=>e.preventDefault());
+addEventListener('blur',resetInput);addEventListener('pagehide',resetInput);
+document.addEventListener('visibilitychange',()=>{resetInput();if(!document.hidden){resize();lay()}});
+addEventListener('pageshow',()=>{resetInput();resize()});
+let last=performance.now(),acc=0,FOCUS=false;
+(function loop(now){
+  requestAnimationFrame(loop);if(FOCUS){last=now;return}const dt=Math.min((now-last)/1000,.1);last=now;
+  if(mesh&&!done&&ph==='polish'){
+    if(tool().hold)for(const p of ptrs.values())if(p.paint){const h=hit(p.x,p.y);if(h)brush(h,.0004*spd()*dt*60)}
+    acc+=dt;if(S.up.auto&&acc>.3){acc=0;let ch=false;
+      for(let i=0;i<count;i++)if(pol[i]<1){const np=Math.min(1,pol[i]+S.up.auto*.0015*Math.pow(Math.max(.6,stone.hard),1.2));sum+=np-pol[i];pol[i]=np;setPos(i);ch=true}
+      if(ch){upd();ui()}}
+    /* 磨き度99%の0.3秒後、削り残しを全て磨いて100%にする */
+    if(p99!==-2&&q()>=.99){if(p99<0)p99=0;p99+=dt;if(p99>=.3){p99=-2;for(let i=0;i<count;i++)if(pol[i]<1){pol[i]=1;setPos(i)}sum=count;upd();ui()}}
+  }
+  if(AC&&rub){const t=AC.currentTime,on=down&&painting;let rg=0,cg=0,jg=0;
+    if(on&&ph==='polish')rg=tool().hold?.3:Math.min(sp/22,1)*.45;
+    if(on&&ph==='comp')cg=Math.min(sp/22,1)*.6;
+    if(ph==='cut'&&cutOn)jg=.4;
+    rub.g.gain.setTargetAtTime(rg,t,.04);cmp.g.gain.setTargetAtTime(cg,t,.04);jetN.g.gain.setTargetAtTime(jg,t,.04);
+    rub.fl.frequency.setTargetAtTime(1800+(mesh&&stone?q():0)*3600,t,.1);sp*=.85}
+  if(uni){uni.uTime.value=now/1000;const tg=revOn&&mesh&&!done&&(ph==='polish'||ph==='comp')?1:0;revV+=(tg-revV)*Math.min(1,dt*8);uni.uRev.value=revV;uni.uRevM.value=ph==='comp'?1:0}if(mesh&&mesh._c){const kk=1-Math.min(1,q());mesh.position.set(-mesh._c[0]*kk,-mesh._c[1]*kk,-mesh._c[2]*kk)}if(intro>0)intro=Math.max(0,intro-dt*1.5);
+  group.scale.setScalar(.4+.6*(1-Math.pow(intro,3)));group.position.y=Math.sin(now/900)*.04+2.6*intro*intro;
+  if(!down&&ph!=='cut'){group.quaternion.premultiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,1,0),.004+spin));spin*=.96}
+  pts.rotation.y+=dt*.06;pts.rotation.x=Math.sin(now/4000)*.15;pts.material.opacity=.55+.25*Math.sin(now/600);
+  renderer.render(scene,camera);
+})(performance.now());
+// ---- menu / phases ----
+const btn=(a,l,cls,dis)=>'<button data-a="'+a+'" class="'+(cls||'')+'"'+(dis?' disabled':'')+'>'+l+'</button>';
+function setFocus(on){FOCUS=on;document.body.classList.toggle('focus',on)}
+function openMenu(){
+  const lp=S.up.loupe>=2,est=lp?'(予想 '+yen(value())+')':'';
+  $('menu').innerHTML='<h2>仕上げ</h2><p>磨き度 <b>'+Math.floor(q()*100)+'%</b>　研磨剤 <b>'+Math.floor(comp*100)+'%</b></p>'
+   +btn('comp',freeCoat()?'削り面に研磨剤を塗る(無料)':'研磨剤を塗る(在庫 '+S.stock+')','',(!freeCoat()&&S.stock<1)||compDone)
+   +btn('art',art!==null?'アート加工済み':S.jet?'芸術品にカットする':'カット(要:ウォータージェット機)','',art!==null||!S.jet)
+   +btn('proc','加工メニュー','')+btn('sell','売る '+est,'gold')+btn('back','戻って磨く','');
+  $('menuO').classList.add('show')}
+function openShapes(){
+  $('menu').innerHTML='<h2>形を選ぶ</h2><p>成功すれば価値が大きく上がりますが、失敗すると石が割れます。カット後は削り面に研磨剤を塗って仕上げます。</p>'+SH.map((s,i)=>btn('shape'+i,s.n)).join('')+btn('menu','やめる','');}
+$('menu').onclick=e=>{const b=e.target.closest('button');if(!b)return;const a=b.dataset.a;if(!a)return;clearInterval(procIv);procIv=null;setFocus(false);
+  if(a==='back'){$('menuO').classList.remove('show')}
+  else if(a==='comp'){if(!freeCoat()){if(S.stock<1)return;S.stock--}save();$('menuO').classList.remove('show');ph='comp';ui()}
+  else if(a==='art')openShapes();
+  else if(a==='menu')openMenu();
+  else if(a==='proc')openProcs();
+  else if(a.startsWith('p_'))runProc(a.slice(2));
+  else if(a.startsWith('x_'))procChoice(a.slice(2));
+  else if(a==='sell'){if(biHeat&&stone.n==='ただの石'&&Object.keys(proc).join()==='heat'&&art===null&&comp===0&&!compDone&&sum/count>=.995)S.bi=1;$('menuO').classList.remove('show');finish(false)}
+  else if(a&&a.startsWith('shape')){$('menuO').classList.remove('show');startCut(+a.slice(5))}};
+$('act').onclick=()=>{if(!stone||done)return;audioInit();
+  if(ph==='polish')openMenu();
+  else if(ph==='comp'){if(coatClear)compDone=true;ph='polish';ui();openMenu()}
+  else{endCutUi();openMenu()}};
+// ---- processing ----
+const PR=[['heat','加熱処理','色が鮮やかに。熱しすぎると割れる',3000],['facet','ファセットカット','多面カットで輝きUP。タイミング勝負',5000],['cab','カボションカット','丸く削って星彩(スター)を出す',2500],['dye','染色','好きな色に変える',2000],['imp','含浸処理','透明感アップ・内包物を目立たなくする',1500],['sign','刻印','職人名を刻む',800],['cert','鑑定書','鑑定書を付けて信頼UP',400],
+['rhythm','リズム研磨','拍に合わせて12回タップ',12000],['angle','角度出し','パッドをなぞって光が入る角度を探す',45000],['mix','薬液調合','隠れた最適配合を推理して合わせる',130000],['etch','レーザー彫刻','光る点を順番になぞる',400000],
+['bubble','気泡除去','石の中の気泡をタップで割る',1200000],['anneal','精密徐冷','左右ボタンで針を中央に保つ',3500000],['resonate','共鳴調律','光る順番を覚えて再現',8000000]];
+const PRN=Object.fromEntries(PR.map(p=>[p[0],p[1]]));
+const DYE=[['赤',[.85,.05,.1]],['青',[.1,.25,.9]],['緑',[.08,.7,.38]],['紫',[.6,.3,.92]],['金',[.95,.75,.2]],['桃',[.95,.45,.7]]];
+function openProcs(msg){
+  $('menu').innerHTML='<h2>加工メニュー</h2>'+(msg?'<p><b>'+msg+'</b></p>':'<p>設備はショップの消耗品タブで購入できます</p>')
+   +PR.map(p=>btn('p_'+p[0],PRN[p[0]]+(proc[p[0]]?' ✓':!S.mach[p[0]]?'(要設備)':''),'',!!proc[p[0]]||!S.mach[p[0]])).join('')+btn('menu','戻る');
+  $('menuO').classList.add('show')}
+function pay(c){if(S.money<c){openProcs('所持金が足りません');return false}S.money-=c;save();ui();return true}
+function applyProc(id,mul,pts,msg){proc[id]=1;qa('p_'+id);qa('pany');procMul*=mul;procPts+=pts;chime();openProcs(PRN[id]+'完了！ 売値×'+mul.toFixed(2)+(msg?'　'+msg:''))}
+function runProc(id){
+  if(GAMES[id])GAMES[id]();else if(id==='heat')heatGame();else if(id==='facet')facetGame();else if(id==='cab')cabGame();
+  else if(id==='dye'){const c=Math.max(50,Math.round(stone.base*szF*.05));$('menu').innerHTML='<h2>染色</h2><p>色を選ぶ(費用 '+yen(c)+')</p>'+DYE.map((d,i)=>btn('x_d'+i,d[0])).join('')+btn('proc','やめる')}
+  else if(id==='imp'){const c=Math.max(30,Math.round(stone.base*szF*.04));if(!pay(c))return;uni.uP.value.x=Math.min(1,uni.uP.value.x+.25);uni.uP.value.w*=.3;applyProc('imp',1.15,2)}
+  else if(id==='sign'){if(!pay(100))return;applyProc('sign',1.05,.5)}
+  else if(id==='cert'){if(!pay(400))return;applyProc('cert',1.1,1)}}
+function procChoice(k){
+  if(k[0]==='d'){const c=Math.max(50,Math.round(stone.base*szF*.05));if(!pay(c))return;uni.uGem.value.set(...DYE[+k[1]][1]);applyProc('dye',1.12,1.5)}}
+function heatGame(){let t=0,iv=null;
+  $('menu').innerHTML='<h2>加熱処理</h2><p>緑の帯の所で指を離そう。熱しすぎると割れます</p><div class="tg"><i class="zone" style="left:68%;width:15%"></i><b class="nd" id="nd"></b></div><button id="hold" class="gold">押し続けて加熱</button>'+btn('proc','やめる');
+  const rel=()=>{if(!iv)return;const bz=stone.n==='ただの石'&&sum/count>=.995;clearInterval(iv);iv=null;procIv=null;
+    if(t>=1){crack();$('menuO').classList.remove('show');finish(true)}
+    else{if(bz)biHeat=true;const q=Math.max(0,1-Math.abs(t-.795)/.14);uni.uGem.value.multiplyScalar(1+.25*q);applyProc('heat',1.05+.3*q,3*q,q>.85?'見事！':'')}};
+  const hb=$('hold');hb.onpointerdown=e=>{e.preventDefault();audioInit();if(iv)return;t=0;iv=procIv=setInterval(()=>{t+=.012+Math.min(.01,Math.log10(stone.base+10)*.0012);$('nd').style.left=Math.min(t,1)*95+'%';ping(300+t*900,.05,.02);if(t>=1)rel()},40)};
+  hb.onpointerup=rel;hb.onpointerleave=rel;hb.onpointercancel=rel}
+function facetGame(){let n=0,sc=0,pos=0;
+  $('menu').innerHTML='<h2>ファセットカット</h2><p>針が中央の帯に来た瞬間にタップ(6回)</p><div class="tg"><i class="zone" style="left:43%;width:9%"></i><b class="nd" id="nd"></b></div><button id="tap" class="gold">刻む 0/6</button>'+btn('proc','やめる');
+  procIv=setInterval(()=>{pos=Math.sin(performance.now()/(220-Math.min(70,Math.log10(stone.base+10)*12)))*.5+.5;$('nd').style.left=pos*95+'%'},16);
+  $('tap').onpointerdown=e=>{e.preventDefault();audioInit();sc+=Math.max(0,1-Math.abs(pos-.5)/.2);n++;ping(900+n*150,.12,.12);$('tap').textContent='刻む '+n+'/6';
+    if(n>=6){clearInterval(procIv);procIv=null;const q=sc/6;uni.uP.value.y=1;applyProc('facet',1.1+.45*q,4*q,q>.8?'美しい面！':'')}}}
+function cabGame(){let g=0,iv=null;
+  $('menu').innerHTML='<h2>カボションカット</h2><p>押し続けて丸く削ろう(硬い石ほど時間がかかります)</p><div class="bar" style="margin:14px 0"><i id="gb"></i></div><button id="grind" class="gold">押し続けて研削</button>'+btn('proc','やめる');
+  const rel=()=>{if(iv){clearInterval(iv);iv=procIv=null}};
+  const gb=$('grind');gb.onpointerdown=e=>{e.preventDefault();audioInit();if(iv)return;iv=procIv=setInterval(()=>{g=Math.min(1,g+.0045*Math.pow(stone.hard,1.5));$('gb').style.width=g*100+'%';ping(1200+g*800,.04,.02);if(g>=1){rel();uni.uP.value.y=0;uni.uStar.value=Math.max(stone.s,.9);applyProc('cab',1.25,3)}},40)};
+  gb.onpointerup=rel;gb.onpointerleave=rel;gb.onpointercancel=rel}
+// ---- new processing mini-games ----
+const FIN=(id,q,k,p,good)=>{clearInterval(procIv);procIv=null;setFocus(false);const q0=q;q=q0<.3?0:Math.pow(q0,1.6);cxBig(q0);uni.uGem.value.multiplyScalar(1+.12*q);applyProc(id,1+k*q,p*q,q0>.85?good:q<=0?'失敗…腕前が足りない！':'')};
+const MG=(t,d,b)=>{$('menu').innerHTML='<h2>'+t+'</h2><p>'+d+'</p>'+b+btn('proc','やめる')};
+const GAMES={
+rhythm(){let n=0,sc=0;const P=Math.max(420,640-Math.log10(stone.base+10)*38),t0=performance.now();
+ MG('リズム研磨','輪が中央の円に重なる瞬間にタップ(12回)','<div style="position:relative;height:190px"><i id="rg" style="position:absolute;left:50%;top:50%;width:70px;height:70px;margin:-35px;border:4px solid #f0b64a;border-radius:50%"></i><i style="position:absolute;left:50%;top:50%;width:70px;height:70px;margin:-35px;border-radius:50%;background:rgba(95,212,200,.35);border:2px solid #5fd4c8"></i></div><button id="tp" class="gold">叩く 0/12</button>');
+ const ph=()=>((performance.now()-t0)%P)/P;
+ procIv=setInterval(()=>{const r=$('rg');if(r)r.style.transform='scale('+(1+1.4*(1-ph()))+')'},16);
+ $('tp').onpointerdown=e=>{e.preventDefault();audioInit();const p=ph();sc+=Math.max(0,1-Math.min(p,1-p)*P/115);n++;ping(500+n*60,.1,.12);$('tp').textContent='叩く '+n+'/12';if(n>=12)FIN('rhythm',sc/12,.35,3,'完璧なリズム！')}},
+angle(){const Tm=12000;let n=0,sc=0,tx=0,ty=0,t0=0,lm=0,cx=120,cy=120,d=0,dn=0;
+ const nt=()=>{tx=40+Math.random()*160;ty=40+Math.random()*160;d=Math.hypot(cx-tx,cy-ty)};nt();
+ MG('角度出し','パッドを指でなぞって光が一番きれいに入る角度を探そう。近いほど赤く明るく、音も高くなる。見つけたら「固定」(3か所・12秒)','<canvas id="ac" width="240" height="240" style="touch-action:none;width:240px;height:240px;margin:6px auto;display:block;border-radius:14px;background:#141a28"></canvas><p><b id="at">12.0</b>秒　固定 <b id="an">0</b> / 3</p><button id="al" class="gold">固定</button>');
+ const cv=$('ac'),x=cv.getContext('2d');
+ const dr=()=>{const h=Math.max(0,1-d/170);x.clearRect(0,0,240,240);const g=x.createRadialGradient(cx,cy,4,cx,cy,40+h*170);g.addColorStop(0,'hsla('+Math.round(220-h*200)+',90%,'+Math.round(35+h*35)+'%,'+(.4+h*.55).toFixed(2)+')');g.addColorStop(1,'rgba(20,30,50,.6)');x.fillStyle=g;x.fillRect(0,0,240,240);x.strokeStyle='rgba(255,255,255,.85)';x.lineWidth=2;x.beginPath();x.arc(cx,cy,12,0,6.283);x.moveTo(cx-20,cy);x.lineTo(cx+20,cy);x.moveTo(cx,cy-20);x.lineTo(cx,cy+20);x.stroke()};dr();
+ const go=()=>{if(!t0){t0=performance.now();procIv=setInterval(()=>{const r=Tm-(performance.now()-t0);const e=$('at');if(e)e.textContent=Math.max(0,r/1000).toFixed(1);if(r<=0)FIN('angle',sc/3,.45,3.8,'')},100)}};
+ const mv=e=>{const r=cv.getBoundingClientRect();cx=Math.max(0,Math.min(240,(e.clientX-r.left)*240/r.width));cy=Math.max(0,Math.min(240,(e.clientY-r.top)*240/r.height));d=Math.hypot(cx-tx,cy-ty);dr();const now=performance.now();if(now-lm>90){lm=now;ping(280+Math.max(0,1-d/170)*1200,.07,.05)}};
+ cv.onpointerdown=e=>{e.preventDefault();audioInit();cv.setPointerCapture(e.pointerId);dn=1;go();mv(e)};
+ cv.onpointermove=e=>{if(dn)mv(e)};cv.onpointerup=cv.onpointercancel=()=>{dn=0};
+ $('al').onpointerdown=e=>{e.preventDefault();audioInit();go();sc+=Math.max(0,1-d/50);n++;$('an').textContent=n;ping(700+n*180,.14,.12);if(n>=3)FIN('angle',sc/3,.45,3.8,'完璧な角度！');else{nt();dr()}}},
+mix(){const N=['温度','濃度','時間'],T=N.map(()=>20+Math.random()*60),H=[];let tn=0,best=0;
+ MG('薬液調合','3本のスライダーを動かして「テスト」。近さ%を手がかりに隠れた最適配合を推理しよう(5回・一番近かった配合を採用)',N.map((nm,i)=>'<div style="display:flex;align-items:center;gap:8px;margin:8px 0"><span style="width:42px;text-align:left">'+nm+'</span><input id="sl'+i+'" type="range" min="0" max="100" value="50" style="flex:1;accent-color:#e8c872"><b id="sv'+i+'" style="width:30px;text-align:right">50</b></div>').join('')+'<div id="mh" style="font-size:13px;min-height:84px;text-align:left;margin:6px 0"></div><button id="mt" class="gold">テスト 0/5</button>');
+ N.forEach((_,i)=>{const sl=$('sl'+i);sl.oninput=()=>{$('sv'+i).textContent=sl.value}});
+ $('mt').onpointerdown=e=>{e.preventDefault();audioInit();if(tn>=5)return;const v=N.map((_,i)=>+$('sl'+i).value),dist=Math.hypot(v[0]-T[0],v[1]-T[1],v[2]-T[2]),c=Math.max(0,1-dist/70);best=Math.max(best,c);tn++;ping(350+c*1100,.16,.12);
+  H.push('#'+tn+'　'+v.join(' / ')+'　近さ <b>'+Math.round(c*100)+'%</b>');$('mh').innerHTML=H.join('<br>');$('mt').textContent='テスト '+tn+'/5';
+  if(tn>=5){$('mt').disabled=true;procIv=setTimeout(()=>FIN('mix',best,.58,4.4,'完璧な配合！'),700)}}},
+etch(){const N=10,P=[];for(let i=0;i<N;i++){const a=-1.5708+i*.6283,r=i%2?50:100;P.push([120+Math.cos(a)*r,120+Math.sin(a)*r])}let nx=0,t0=0,dn=0;const T=9000;
+ MG('レーザー彫刻','光る点を番号順になぞって星を彫ろう(9秒)','<canvas id="ec" width="240" height="240" style="touch-action:none;width:240px;height:240px;margin:6px auto;display:block;background:rgba(255,255,255,.05);border-radius:14px"></canvas>');
+ const cv=$('ec'),x=cv.getContext('2d');
+ const dr=()=>{x.clearRect(0,0,240,240);x.strokeStyle='#8fe8ff';x.lineWidth=4;x.lineCap='round';x.beginPath();P.slice(0,nx).forEach((p,i)=>i?x.lineTo(p[0],p[1]):x.moveTo(p[0],p[1]));x.stroke();x.font='11px sans-serif';x.textAlign='center';
+  P.forEach((p,i)=>{x.fillStyle=i<nx?'#5fd4c8':i===nx?'#f0b64a':'rgba(255,255,255,.35)';x.beginPath();x.arc(p[0],p[1],i===nx?11:7,0,6.283);x.fill();x.fillStyle='#fff';x.fillText(i+1,p[0],p[1]-14)})};dr();
+ const chk=e=>{const r=cv.getBoundingClientRect(),px=(e.clientX-r.left)*240/r.width,py=(e.clientY-r.top)*240/r.height;if(nx<N&&Math.hypot(px-P[nx][0],py-P[nx][1])<22){nx++;ping(500+nx*70,.1,.1)}dr();if(nx>=N)FIN('etch',1,.7,5,'美しい彫刻！')};
+ cv.onpointerdown=e=>{e.preventDefault();audioInit();cv.setPointerCapture(e.pointerId);dn=1;if(!t0){t0=performance.now();procIv=setInterval(()=>{if(performance.now()-t0>T)FIN('etch',nx/N,.7,5,'')},100)}chk(e)};
+ cv.onpointermove=e=>{if(dn)chk(e)};cv.onpointerup=cv.onpointercancel=()=>{dn=0}},
+bubble(){const B=[],N=9,t0=performance.now(),T=9000;let pop=0;
+ MG('気泡除去','石の中の気泡をタップして割ろう(9秒)','<div id="bx" style="position:relative;height:220px;border-radius:14px;background:radial-gradient(circle,rgba(140,220,255,.25),rgba(20,30,50,.6));overflow:hidden;touch-action:none"></div><p><b id="cn">0</b> / 9</p>');
+ const bx=$('bx');for(let i=0;i<N;i++){const e=document.createElement('i'),s=28+Math.random()*16,b={e,s,x:Math.random()*220,y:Math.random()*160,vx:(Math.random()-.5)*3.4,vy:(Math.random()-.5)*3.4,a:1};
+  e.style.cssText='position:absolute;width:'+s+'px;height:'+s+'px;border-radius:50%;border:2px solid rgba(255,255,255,.8);background:radial-gradient(circle at 30% 30%,rgba(255,255,255,.8),rgba(150,220,255,.2))';
+  e.onpointerdown=ev=>{ev.preventDefault();audioInit();if(!b.a)return;b.a=0;e.remove();pop++;$('cn').textContent=pop;ping(700+pop*90,.1,.1);if(pop>=N)FIN('bubble',1,1,6,'完全除去！')};bx.appendChild(e);B.push(b)}
+ procIv=setInterval(()=>{const w=bx.clientWidth,h=bx.clientHeight;B.forEach(b=>{if(!b.a)return;b.x+=b.vx;b.y+=b.vy;if(b.x<0||b.x>w-b.s)b.vx*=-1;if(b.y<0||b.y>h-b.s)b.vy*=-1;b.x=Math.max(0,Math.min(w-b.s,b.x));b.y=Math.max(0,Math.min(h-b.s,b.y));b.e.style.left=b.x+'px';b.e.style.top=b.y+'px'});if(performance.now()-t0>T)FIN('bubble',pop/N,1,6,'')},16)},
+anneal(){let p=.5,v=0,dir=0,tin=0,tt=0;const T=8000;
+ MG('精密徐冷','針を緑の帯に保とう。左右ボタンで押し戻す(8秒)','<div class="tg" style="height:26px"><i class="zone" style="left:38%;width:24%"></i><b class="nd" id="nd"></b></div><div style="display:flex;gap:10px"><button id="bl" class="gold">◀ 左</button><button id="br" class="gold">右 ▶</button></div>');
+ [['bl',-1],['br',1]].forEach(([id,d])=>{const b=$(id);b.onpointerdown=e=>{e.preventDefault();audioInit();dir=d};b.onpointerup=b.onpointerleave=b.onpointercancel=()=>{dir=0}});
+ procIv=setInterval(()=>{v+=(Math.random()-.5)*.0075+dir*.0006;v*=.96;p+=v;if(p<0){p=0;v=0}if(p>1){p=1;v=0}tt+=16;if(Math.abs(p-.5)<.12)tin+=16;$('nd').style.left=p*95+'%';if(tt>=T)FIN('anneal',tin/T,1.4,6,'完璧な結晶！')},16)},
+resonate(){const C=['#ff5a6a','#5aa8ff','#5fe08a','#ffd84a'],F=[330,415,523,660],S5=Array.from({length:5},()=>Math.floor(Math.random()*4));let k=0,ok=0,acc=false;
+ MG('共鳴調律','光る順番を覚えて、同じ順番でタップ','<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:10px 0">'+C.map((c,i)=>'<button id="pd'+i+'" style="height:70px;background:'+c+';opacity:.45;border:0"></button>').join('')+'</div><p id="rs">よく見て…</p>');
+ const fl=i=>{const b=$('pd'+i);if(!b)return;b.style.opacity=1;ping(F[i],.3,.15);setTimeout(()=>{b.style.opacity=.45},320)};
+ S5.forEach((s,j)=>setTimeout(()=>fl(s),700*(j+1)));setTimeout(()=>{acc=true;const r=$('rs');if(r)r.textContent='あなたの番！'},700*6);
+ C.forEach((c,i)=>{$('pd'+i).onpointerdown=e=>{e.preventDefault();audioInit();if(!acc)return;fl(i);if(i===S5[k])ok++;k++;if(k>=5){acc=false;FIN('resonate',ok/5,2,8,'完全共鳴！')}}})}};
+// ---- cutting ----
+function densify(poly){const out=[],n=poly.length;for(let i=0;i<n;i++){const a=poly[i],b=poly[(i+1)%n],L=Math.hypot(b[0]-a[0],b[1]-a[1]),k=Math.max(1,Math.round(L/.03));for(let j=0;j<k;j++)out.push([a[0]+(b[0]-a[0])*j/k,a[1]+(b[1]-a[1])*j/k])}out.push(poly[0]);return out}
+function startCut(si){cutSi=si;const Rs=Math.min(innerWidth,innerHeight)*.3,cx=innerWidth/2,cy=innerHeight/2;
+  cutPath=densify(SH[si].poly).map(p=>[cx+p[0]*Rs,cy+p[1]*Rs]);cidx=0;stress=0;cutOn=false;
+  tol=24+S.up.nozzle*5;lim=60+S.up.nozzle*18;ph='cut';c2.style.pointerEvents='auto';ui();drawCut()}
+function endCutUi(){ph='polish';cutOn=false;c2.style.pointerEvents='none';x2.clearRect(0,0,c2.width,c2.height);ui()}
+function drawCut(){x2.clearRect(0,0,c2.width,c2.height);if(!cutPath.length)return;
+  const path=(a,b)=>{x2.beginPath();for(let i=a;i<=b;i++)i===a?x2.moveTo(cutPath[i][0],cutPath[i][1]):x2.lineTo(cutPath[i][0],cutPath[i][1])};
+  x2.lineJoin='round';x2.lineCap='round';x2.setLineDash([8,8]);x2.strokeStyle='rgba(255,255,255,.55)';x2.lineWidth=3;path(0,cutPath.length-1);x2.stroke();
+  x2.setLineDash([]);if(cidx>0){x2.strokeStyle='#6fe6ff';x2.lineWidth=7;x2.shadowColor='#6fe6ff';x2.shadowBlur=14;path(0,cidx);x2.stroke();x2.shadowBlur=0}
+  const p=cutPath[cidx];x2.fillStyle=cutOn?'#fff':'#f0b64a';x2.beginPath();x2.arc(p[0],p[1],cutOn?9:13,0,7);x2.fill()}
+c2.addEventListener('pointerdown',e=>{if(ph!=='cut')return;audioInit();const p=cutPath[cidx];
+  if(Math.hypot(e.clientX-p[0],e.clientY-p[1])<tol*2.2){cutOn=true;c2.setPointerCapture(e.pointerId);drawCut()}});
+c2.addEventListener('pointermove',e=>{if(ph!=='cut'||!cutOn)return;
+  let best=cidx,bd=1e9;for(let j=cidx;j<Math.min(cutPath.length,cidx+10);j++){const d=Math.hypot(e.clientX-cutPath[j][0],e.clientY-cutPath[j][1]);if(d<bd){bd=d;best=j}}
+  if(bd<tol*1.15){cidx=best;if(cidx%6===0)ping(2200+Math.random()*900,.05,.03)}
+  else{stress+=(bd-tol)*.35;ping(180,.08,.08,'sawtooth')}
+  ui();drawCut();
+  if(stress>=lim){cutOn=false;endCutUi();crack();done=true;finish(true)}
+  else if(cidx>=cutPath.length-2){cutOn=false;cutDone()}});
+const cEnd=()=>{cutOn=false;if(ph==='cut')drawCut()};c2.addEventListener('pointerup',cEnd);c2.addEventListener('pointercancel',cEnd);
+function cutDone(){artAcc=Math.max(.5,1-stress/lim);art=cutSi;S.st.art++;qa('art');qa('shape'+cutSi);
+  for(let i=0;i<count;i++){const r=SH[cutSi].fn(dirs[i*3],dirs[i*3+1],dirs[i*3+2]);sm[i]=r;rough[i]=r*(1+.012*nz(dirs[i*3]*2,dirs[i*3+1]*2,dirs[i*3+2]*2,[1,2,3])*5);setPos(i)}
+  comp=0;compDone=false;coatClear=false;coat.fill(0);coatSum=0;cov=0;mesh.scale.set(1,1,1);mesh._c=null;mesh.position.set(0,0,0);mesh._R=Math.min(1.5,Math.max(1,Math.max(...sm)/.86));upd();endCutUi();chime();
+  setMode('pol');ph='comp';ui();
+  $('hint').innerHTML='カット成功！削り面に<b>研磨剤</b>を塗って仕上げよう';setTimeout(()=>{if(ph==='comp')ui()},2600)}
+// ---- result / share ----
+function finish(broken){
+  done=true;const sc=broken?0:score(),v=value(broken)*(sc>=100?1.25:1),p=v-cost,g=GR.find(x=>sc>=x[0]);
+  const gi=GR.indexOf(g);if(!broken)spin=.3;const gw=broken?0:curW();
+  const nm=(art!==null?SH[art].n+'カットの':'')+(mut?MUTS[mut].n+' ':'')+stone.n;
+  if(broken){S.money+=v;S.st.sold++;S.st.earn+=p;if(gi<S.st.best)S.st.best=gi;qfin(broken,v,p,gi)}
+  else S.pend={v,p,gi,cost,sn:stone.n,nm,art,mut,g:g[1],sc:Math.floor(sc),proc:Object.assign({},proc),tl:S.tool,gw,g0,szT};
+  save();ui();if(!broken)chime();
+  $('resC').innerHTML=(!broken&&stone.sub?'<div class="stamp-w"><div class="stamp-sub">亜種</div><div class="stamp-par">（'+stone.p+'）</div></div>':'')+(broken?'<h2>割れてしまった…</h2><div class="grade">D</div><p>カットに失敗して石が砕けました</p>'
+    :(stone.secret?'<p><b style="color:#ff6bd6;letter-spacing:.2em;font-size:15px">★ SECRET ★</b></p>':'')+'<h2>'+nm+'</h2><div class="grade'+(g[1]==='SSS'?' sss':'')+'">'+g[1]+'</div><p>'+g[2]+(art!==null?'(芸術品)':'')+'　'+Math.floor(sc)+'点</p>')
+    +'<p>磨き度 <b>'+Math.floor(q()*100)+'%</b>　研磨剤 <b>'+Math.floor(comp*100)+'%</b>'+(art!==null&&!broken?'　カット <b>'+Math.floor(artAcc*100)+'%</b>':'')+'</p>'
+    +(Object.keys(proc).length?'<p>加工: '+Object.keys(proc).map(k=>PRN[k]).join('・')+'</p>':'')+(mut?'<p>突然変異 <b>'+MUTS[mut].n+' ×'+MUTS[mut].m+'</b></p>':'')+(stone.sub?'<p>亜種 <b>原種: '+stone.p+'</b></p>':'')+(szT?'<p>サイズ <b>'+SZN[szT]+' ×'+SZM[szT]+'</b></p>':'')+(broken?'':'<p>重さ <b>'+fmtG(gw)+'</b>（原石 '+fmtG(g0)+'・歩留まり '+Math.round(gw/g0*100)+'%）</p>')+'<p>仕入れ <b>'+yen(cost)+'</b>　売値 <b>'+yen(v)+'</b></p><div class="pf">'+(p>=0?'利益 +':'損失 -')+yen(Math.abs(p))+'</div>'
+    +(broken?btn('share','写真を撮って共有','')+btn('next','次の石を仕入れる','on')
+      :btn('sell','この石を売る　'+yen(v),'gold')+btn('exh',S.inv.length>=cap()?'展示ケースが満杯 ('+S.inv.length+'/'+cap()+')':'この石を展示する ('+S.inv.length+'/'+cap()+')','',S.inv.length>=cap())
+      +'<p class="iv-note">展示すると1分ごとに価値が ×0.1〜×10 の範囲で上下します。展示した石は元に戻せず、売却のみ可能です。</p>'+btn('share','写真を撮って共有',''));
+  window._last={nm,g:broken?'D':g[1],v,p,sub:!broken&&stone.sub?1:0,par:stone.p||'',wt:broken?'':fmtG(gw)+(szT?'　'+SZN[szT]+' ×'+SZM[szT]:'')};$('res').classList.add('show')}
+function compose(){const W=720,H=900,c=document.createElement('canvas');c.width=W;c.height=H;const x=c.getContext('2d'),w=WP[S.wp];
+  const gr=x.createRadialGradient(W/2,H*.4,40,W/2,H*.4,H*.7);gr.addColorStop(0,w[2]);gr.addColorStop(1,w[3]);x.fillStyle=gr;x.fillRect(0,0,W,H);
+  const gl=renderer.domElement,side=Math.min(gl.width,gl.height)*.85;x.drawImage(gl,(gl.width-side)/2,(gl.height-side)/2,side,side,60,90,600,600);
+  x.fillStyle='#e9eef5';x.textAlign='center';x.font='700 28px sans-serif';x.fillText('Lapidary Studio',W/2,60);
+  const L=window._last;x.font='700 48px sans-serif';x.fillText(T(L.nm),W/2,750);x.fillStyle='#f0b64a';x.font='700 40px sans-serif';x.fillText(T('評価 '+L.g)+'  '+yen(L.v),W/2,810);
+  if(L.sub){x.save();x.translate(580,130);x.rotate(-.22);x.strokeStyle=x.fillStyle='#ff5a4a';x.lineWidth=6;x.strokeRect(-80,-40,160,80);x.font='900 52px serif';x.textBaseline='middle';x.fillText(T('亜種'),0,2);x.font='700 26px serif';x.fillText(T('（'+L.par+'）'),0,64);x.restore()}
+  if(L.wt){x.fillStyle='#bfe7ff';x.font='600 24px sans-serif';x.fillText(T('重さ ')+T(L.wt),W/2,712)}
+  x.fillStyle='#9aabc0';x.font='500 26px sans-serif';x.fillText(T('職人 ')+T(S.name||'名無し')+'  '+qtit(),W/2,860);return c}
+function share(){const c=compose(),L=window._last,text=en()?S.name+' finished "'+T(L.nm)+'" with grade '+L.g+'! #LapidaryStudio':S.name+'が「'+L.nm+'」を評価'+L.g+'で仕上げた！ #LapidaryStudio';
+  const show=()=>{$('photoImg').src=c.toDataURL('image/png');$('photoO').classList.add('show')};
+  c.toBlob(b=>{try{const f=new File([b],'gem.png',{type:'image/png'});
+    if(navigator.canShare&&navigator.canShare({files:[f]}))navigator.share({files:[f],text}).catch(show);else show()}catch(e){show()}})}
+$('resC').onclick=e=>{const b=e.target.closest('button');if(!b)return;
+  const a=b.dataset.a;if(a==='share')share();else if(a==='next'){$('res').classList.remove('show');newStone()}
+  else if(a==='sell'){const P=S.pend;if(P){settle(P);S.pend=null}save();ui();$('res').classList.remove('show');newStone()}
+  else if(a==='exh'){const P=S.pend;if(P&&exhibit(P)){S.pend=null;save();ui();sfx('reward');$('res').classList.remove('show');newStone()}}};
+function qfinP(P,v){const o=[stone,proc,S.tool];stone=[...STONES,BI].find(s=>s.n===P.sn)||stone;proc=P.proc||{};if(P.tl)S.tool=P.tl;try{qfin(false,v,v-P.cost,P.gi)}finally{stone=o[0];proc=o[1];S.tool=o[2]}
+  if(P.gw){const r=(S.ix=S.ix||{})[P.sn];if(r)r.w=Math.max(r.w||0,P.gw)}}
+function settle(P){S.money+=P.v;S.st.sold++;S.st.earn+=P.v-P.cost;if(P.gi<S.st.best)S.st.best=P.gi;qfinP(P,P.v)}
+function exhibit(P){if(S.inv.length>=cap())return false;const now=Date.now();
+  S.inv.push({id:now.toString(36)+Math.random().toString(36).slice(2,6),sn:P.sn,nm:P.nm,mut:P.mut,art:P.art,gi:P.gi,g:P.g,sc:P.sc,cost:P.cost,v0:P.v,lm:0,h:[0],lt:now,t0:now,hi:0,lo:0,u:0,d:0,proc:P.proc,tl:P.tl,sd:Math.random()});return true}
+const cap=()=>3+(S.up.vault||0);
+$('photoX').onclick=()=>$('photoO').classList.remove('show');
+function setMode(m){mode=m;$('mPol').classList.toggle('on',m==='pol');$('mRot').classList.toggle('on',m==='rot');ui()}
+$('revB').onclick=()=>{audioInit();revOn=!revOn;$('revB').classList.toggle('on',revOn);$('revB').setAttribute('aria-pressed',revOn);ui()};
+const rarL=b=>b<300?['コモン','#9aa3ad']:b<1500?['アンコモン','#7ec8ff']:b<5000?['レア','#ffd76a']:b<30000?['エピック','#ff8ad8']:['レジェンド','#ff9a4a'];
+function renderIdx(){const cl=(S.q&&S.q.coll)||{},L=STONES.slice().sort((a,b)=>a.base-b.base),got=L.filter(t=>cl[t.n]).length;
+  let h='<div class="hd"><b>鉱石図鑑</b><span>'+got+' / '+L.length+'</span></div><div class="bar"><i style="width:'+got/L.length*100+'%"></i></div><p style="color:var(--mute);font-size:12px;margin:6px 0">石を仕上げて売ると登録されます</p>';
+  L.forEach(t=>{const r=rarL(t.base),k=cl[t.n],ix=(S.ix||{})[t.n],c='rgb('+t.c.map(x=>Math.round(x*255)).join(',')+')',dot=k?'background:'+c+';box-shadow:0 0 8px '+c:'background:#3a3f48';
+    h+=row('<span style="display:inline-block;width:12px;height:12px;border-radius:50%;margin-right:6px;'+dot+'"></span>'+(k?t.n:'？？？'),'<span style="color:'+r[1]+'">'+r[0]+'</span>'+(k?'　原価 '+yen(t.base)+(ix?'　最高 '+GR[ix.b][1]+'　'+ix.n+'個':''):''),'')});
+  h+='<div style="margin-top:10px"><button data-ix="1" class="on" style="width:100%">閉じる</button></div>';$('idx').innerHTML=h}
+$('idxB').onclick=()=>{renderIdx();$('idxO').classList.add('show')};
+$('idx').onclick=e=>{if(e.target.closest('[data-ix]'))$('idxO').classList.remove('show')};
+$('mPol').onclick=()=>setMode('pol');$('mRot').onclick=()=>setMode('rot');
+// ---- shop ----
+let tab='tool',rstArm=0,ani=true;
+const price=k=>Math.round(UPS[k].b*Math.pow(1.8,S.up[k]));
+const row=(t,d,b)=>'<div class="row"><div><b>'+t+'</b><small>'+d+'</small></div>'+b+'</div>';
+const sb=(at,l,cls,dis)=>'<button '+at+' class="'+(cls||'')+'"'+(dis?' disabled':'')+'>'+l+'</button>';
+function renderShop(){
+  const T=[['tool','道具'],['up','強化'],['item','消耗品'],['wall','壁紙'],['me','設定']];
+  let h='<div class="hd"><div style="display:flex;align-items:center;gap:12px"><div class="sc"><div class="cube"><i></i><i></i><i></i><i></i><i></i><i></i></div></div><b>ショップ</b></div><span>'+yen(S.money)+'</span></div><div class="tabs">'+T.map(t=>'<button data-tab="'+t[0]+'" class="'+(tab===t[0]?'on':'')+'">'+t[1]+'</button>').join('')+'</div>';
+  if(tab==='tool'){
+    TOOLS.forEach(t=>{const own=S.owned.includes(t.id),eq=S.tool===t.id;h+=row(t.n,t.d,sb('data-t="'+t.id+'"',eq?'装備中':own?'装備する':t.q?'クエスト報酬':yen(t.p),eq?'on':'',!own&&(t.q||S.money<t.p)))});
+    h+=row('ウォータージェット機','芸術品のカット加工に必要',sb('data-a="jet"',S.jet?'所持済み':yen(6000),'',S.jet||S.money<6000))}
+  if(tab==='up')for(const k in UPS){const u=UPS[k],l=S.up[k],mx=l>=(u.m||5);h+=row(u.n+' Lv'+l,u.d,sb('data-u="'+k+'"',mx?'MAX':yen(price(k)),'',mx||S.money<price(k)))}
+  if(tab==='item'){h+='<p style="color:var(--mute);font-size:13px">研磨剤の在庫: '+S.stock+'</p>';
+    [[1,60],[5,250],[20,900]].forEach(p=>h+=row('研磨剤 ×'+p[0],'仕上げの研磨剤を塗る作業に使う',sb('data-i="'+p[0]+','+p[1]+'"',yen(p[1]),'',S.money<p[1])));
+    h+='<p style="color:var(--mute);font-size:13px;margin-top:12px">加工設備(一度買えば使い放題)</p>';
+    PR.forEach(p=>h+=row(p[1],p[2],sb('data-m="'+p[0]+'"',S.mach[p[0]]?'所持済み':yen(p[3]),'',!!S.mach[p[0]]||S.money<p[3])))}
+  if(tab==='wall')WP.forEach((w,i)=>{const own=S.wpOwn.includes(i);h+=row(w[0],w[4]?'クエスト報酬の壁紙':w[1]?'有料の壁紙':'無料の壁紙',sb('data-w="'+i+'"',S.wp===i?'使用中':own?'使う':w[4]?'クエスト報酬':yen(w[1]),S.wp===i?'on':'',!own&&(w[4]||S.money<w[1])))});
+  if(tab==='me'){h+='<p style="color:var(--mute);font-size:13px">職人名</p><input id="nm" maxlength="12"><div style="height:8px"></div>'+sb('data-a="rename"','名前を変更','on')
+    +'<p style="font-size:13px;color:var(--mute)">売却 '+S.st.sold+'回　累計利益 '+yen(S.st.earn)+'<br>最高評価 '+GR[S.st.best][1]+'　芸術品 '+S.st.art+'個</p>'
+    +row('サウンド(ASMR)','研磨やカットの音',sb('data-a="snd"',S.snd?'ON':'OFF',S.snd?'on':''))
+    +row('言語 / Language','日本語 / English',sb('data-a="lang"',S.lang==='en'?'English':'日本語','on'))
+    +row('きらきら粒子','空中に浮かぶ粒子の表示',sb('data-a="fx"',S.fx!==false?'ON':'OFF',S.fx!==false?'on':''))
+    +MEM.ui(row,sb)+row('データ初期化','所持金・道具・壁紙をすべて消去（直前の状態は自動バックアップから復元できます）',sb('data-a="reset"',rstArm?'もう一度押す':'初期化','',false))}
+  h+='<div style="margin-top:10px"><button data-a="close" class="on" style="width:100%">閉じる</button></div>';
+  $('shop').innerHTML=h;if($('nm'))$('nm').value=S.name;
+  if(ani){ani=false;$('shop').querySelectorAll('.row').forEach((r,i)=>{r.classList.add('ani');r.style.animationDelay=i*35+'ms'})}}
+const memRe=()=>{if(tab==='me'&&$('shopO').classList.contains('show'))renderShop()};MEM.setCb(memRe);
+$('shopB').onclick=()=>{ani=true;renderShop();$('shopO').classList.add('show');if(tab==='me')MEM.refresh(memRe)};
+$('shop').onclick=e=>{const b=e.target.closest('button');if(!b)return;const d=b.dataset;
+  if(d.tab){tab=d.tab;rstArm=0;ani=true;MEM.arm='';if(tab==='me')MEM.refresh(memRe)}
+  else if(d.a==='close'){$('shopO').classList.remove('show');return}
+  else if(d.t){const t=TOOLS.find(x=>x.id===d.t);if(!S.owned.includes(t.id)){if(t.q||S.money<t.p)return;S.money-=t.p;S.owned.push(t.id)}S.tool=t.id}
+  else if(d.u){if(S.money<price(d.u))return;S.money-=price(d.u);S.up[d.u]++}
+  else if(d.i){const [n,p]=d.i.split(',').map(Number);if(S.money<p)return;S.money-=p;S.stock+=n}
+  else if(d.w){const i=+d.w;if(!S.wpOwn.includes(i)){if(WP[i][4]||S.money<WP[i][1])return;S.money-=WP[i][1];S.wpOwn.push(i)}S.wp=i;applyWp()}
+  else if(d.m){const p=PR.find(x=>x[0]===d.m);if(S.mach[d.m]||S.money<p[3])return;S.money-=p[3];S.mach[d.m]=1}
+  else if(d.a==='jet'){if(S.money<6000||S.jet)return;S.money-=6000;S.jet=true}
+  else if(d.a==='rename'){const v=$('nm').value.trim();if(v)S.name=v.slice(0,12)}
+  else if(d.a==='lang'){S.lang=S.lang==='en'?'ja':'en';applyLang()}
+  else if(d.a==='fx'){S.fx=S.fx===false;applyFx()}
+  else if(d.a==='snd'){S.snd=!S.snd;if(master)master.gain.value=S.snd?.8:0}
+  else if(d.a==='exp'){MEM.exportFile();renderShop();return}
+  else if(d.a==='imp'){MEM.pick();return}
+  else if(d.a==='impok'){MEM.importOk();return}
+  else if(d.a==='impno'){MEM.importNo();renderShop();return}
+  else if(d.a==='fsl'){MEM.fsLink();return}
+  else if(d.a==='fsa'){MEM.fsAllow();return}
+  else if(d.a==='fso'){MEM.fsOff();return}
+  else if(d.a==='fsld'){MEM.fsLoad();return}
+  else if(d.a==='fsf'){MEM.fsForce();renderShop();return}
+  else if(d.a==='rs'){if(MEM.arm!==d.k){MEM.arm=d.k;setTimeout(()=>{if(MEM.arm===d.k){MEM.arm='';if(tab==='me'&&$('shopO').classList.contains('show'))renderShop()}},4000)}else{MEM.arm='';MEM.restore(d.k);return}}
+  else if(d.a==='reset'){if(!rstArm){rstArm=1;setTimeout(()=>{rstArm=0},4000)}else{MEM.snap('初期化前');S=DEF();for(const k in UPS)S.up[k]=0;save();applyWp();applyFx();applyLang();rstArm=0;$('shopO').classList.remove('show');$('nameIn').value='';$('nameO').classList.add('show');return}}
+  save();ui();renderShop()};
+$('nameOk').onclick=()=>{S.name=$('nameIn').value.trim().slice(0,12)||'名無しの職人';save();$('nameO').classList.remove('show');newStone()};
+
+
+// ---- floating words ----
+const FT='Good!|Nice!|Great!|Shiny!|Wow!|Sparkle!|Smooth!|Perfect!|Amazing!|Superb!|Brilliant!|Gleaming!|Glossy!|Dazzling!|Excellent!|Fantastic!|Gorgeous!|Splendid!|Stunning!|Lovely!|Beautiful!|Radiant!|Polished!|Flawless!|Sweet!|Cool!|Yes!|Keep going!|Nailed it!|On fire!|So clean!|Pure!|Crisp!|Silky!|Mirror finish!|Bling!|Fabulous!|Magnificent!|Marvelous!|Epic!|Legendary!|Masterful!|Clean cut!|Sharp!|Slick!|Luminous!|Glittering!|Twinkle!|Gem-tastic!|Rub rub!|Shine on!|Rock on!|Crystal clear!|Precious!|Divine!|Heavenly!|Neat!|Top notch!|Hot!|Lustrous!|Pristine!|Jewel-like!|Satisfying!|いい感じ！|ピカピカ！|きれい！|すごい！|ツルツル！|キラキラ！|ナイス！|最高！|美しい！|輝いてる！|なめらか！|見事！|職人技！|その調子！|いいぞ！|うっとり…|まぶしい！|つやつや！|スベスベ！|もうひと磨き！|絶好調！|光ってきた！|磨けば光る！|惚れ惚れ！|透明感！|宝石の輝き！|気持ちいい！|神業！|完璧！|美麗！|華やか！|艶やか！|鏡のよう！|さすが！|素敵！|輝きが増した！|いい仕事！|磨きがかかる！|無心で磨こう|石が喜んでる！|光が踊る！|星みたい！|まるで鏡！|職人魂！|極上！|絶品！|ごくり…|ぬるぬる！|手が止まらない！|磨くの楽しい！|良い音！|光沢アップ！|石が語りかける|輝く未来！|ゴシゴシ！|シャリシャリ！|汚れ知らず！|ひかり！|お見事！|感動！|伝説の磨き！|眩いばかり！'.split('|');
+let ftLast=0,ftPrev=-1;
+function ftx(){const n=performance.now();if(n-ftLast<5000||Math.random()>.006||done)return;ftLast=n;
+  let i;do{i=Math.floor(Math.random()*FT.length)}while(i===ftPrev);ftPrev=i;
+  const e=document.createElement('div'),s=FT[i],jp=/[぀-ヿ一-鿿]/.test(s),cols=['#fff1bd','#9ff3ea','#ffd1e8','#c9d4ff','#ffe08a','#b9ffd0'];
+  e.className='ft';e.textContent=s;const c=cols[Math.floor(Math.random()*cols.length)];
+  e.style.cssText='left:'+Math.max(70,Math.min(innerWidth-70,lx+(Math.random()-.5)*120))+'px;top:'+Math.max((window._tb||120)+24,ly-50-Math.random()*40)+'px;color:'+c+';--r:'+((Math.random()-.5)*20).toFixed(1)+'deg;font-size:'+(26+Math.floor(Math.random()*14))+'px;font-family:'+(jp?'var(--serif)':'var(--num)')+';text-shadow:0 0 14px '+c+',0 2px 0 rgba(0,0,0,.7)';
+  document.body.appendChild(e);setTimeout(()=>e.remove(),1700)}
+// ---- quests ----
+const QRM=['Ⅰ','Ⅱ','Ⅲ','Ⅳ','Ⅴ','Ⅵ'],QMU=[1,2.5,6,15,40,100];
+const QC=[['day','デイリー'],['trade','売買'],['grade','評価'],['craft','加工'],['collect','収集'],['grow','成長']];
+const qst={coll:()=>Object.keys(S.q.coll).length,owned:()=>S.owned.length,ups:()=>Object.values(S.up).reduce((a,b)=>a+b,0),wp:()=>S.wpOwn.length,mach:()=>Object.values(S.mach).filter(Boolean).length,jet:()=>S.jet?1:0};
+const QL=[],ql=(c,k,n,d,g,b)=>QL.push({c,k,n,d,g,b});
+ql('trade','sold','商いの心得',n=>'石を'+n+'個売る',[1,5,15,40,100,250],150);
+ql('trade','profit','利殖の道',n=>'利益を合計'+yen(n)+'稼ぐ',[1000,10000,50000,200000,1000000,5000000],200);
+ql('trade','maxV','一攫千金',n=>'1個の石を'+yen(n)+'以上で売る',[1000,5000,20000,50000,100000],300);
+ql('trade','maxP','大儲けの瞬間',n=>'1個で利益'+yen(n)+'以上を出す',[500,3000,15000,50000],300);
+ql('trade','streakNB','堅実な仕事',n=>'石を割らずに'+n+'連続で売る',[3,10,25],300);
+ql('trade','broken','失敗は成功のもと',n=>'石を'+n+'個割ってしまう',[1,5,15],150);
+ql('grade','gA','上出来の腕前',n=>'A以上の評価を'+n+'回とる',[1,5,15,40,100],200);
+ql('grade','gS','見事な逸品',n=>'S以上の評価を'+n+'回とる',[1,5,15,40],400);
+ql('grade','gSS','芸術の域',n=>'SS評価を'+n+'回とる',[1,3,10,25],800);
+ql('grade','gSSS','神の領域',n=>'SSS評価を'+n+'回とる',[1,3,10,25],1500);
+ql('grade','streakA','安定の職人',n=>'A以上の評価を'+n+'連続でとる',[3,7,15],500);
+ql('craft','art','芸術家への道',n=>'芸術品を'+n+'個作る',[1,3,10,25,60],400);
+SH.forEach((s,i)=>ql('craft','shape'+i,s.n+'カットの名手',n=>s.n+'カットの芸術品を'+n+'個作る',[1,5,15],400));
+PR.forEach(p=>ql('craft','p_'+p[0],p[1]+'の達人',n=>p[1]+'を'+n+'回行う',[1,10,30],Math.round(100+p[3]/10)));
+ql('craft','procN','全部のせ',n=>'1個の石に'+n+'種類の加工をする',[3,5,8],500);
+ql('collect','coll','鉱石図鑑',n=>n+'種類の石を仕上げて売る',[3,8,15,25,40,STONES.length],250);
+ql('collect','rare1','希少石の目利き',n=>'原価¥1,500以上の石を'+n+'個売る',[1,5,20],400);
+ql('collect','rare2','伝説の鉱脈',n=>'原価¥5,000以上の石を'+n+'個売る',[1,3,10],1000);
+['ダイヤモンド','ピンクダイヤ','ブルーダイヤ','ブラックオパール','アレキサンドライト','ペインタイト'].forEach(nm=>{if(STONES.some(s=>s.n===nm))ql('collect','s_'+nm,nm+'を手にした者',()=>nm+'を仕上げて売る',[1],800)});
+TOOLS.slice(1).forEach(t=>ql('grow','t_'+t.id,t.n+'の使い手',n=>t.n+'で'+n+'個仕上げて売る',[10],500));
+ql('grow','owned','道具集め',n=>'道具を'+n+'個そろえる',[2,4,6],400);
+ql('grow','ups','鍛錬の日々',n=>'強化レベルの合計を'+n+'にする',[1,5,15,30],300);
+ql('grow','wp','壁紙コレクター',n=>'壁紙を'+n+'種類集める',[5,10,15,WP.length],300);
+ql('grow','mach','設備投資',n=>'加工設備を'+n+'台そろえる',[1,4,8],500);
+ql('grow','jet','芸術家の工房',()=>'ウォータージェット機を購入する',[1],1000);
+ql('grow','maxMoney','資産家',n=>'所持金が'+yen(n)+'に到達する',[5000,50000,500000,5000000],300);
+const QS=[];QL.forEach(l=>l.g.forEach((g,i)=>QS.push({id:l.k+'_'+i,l,g,i,n:l.n+(l.g.length>1?' '+QRM[i]:''),d:l.d(g),m:Math.round(l.b*QMU[i]),s:i<2?1:i<4?3:6})));
+const QRW={sold_1:['wp','ステンドグラス'],coll_1:['wp','星降る夜'],art_1:['wp','龍宮'],gS_0:['wp','大聖堂'],rare1_1:['wp','宝石の洞窟'],profit_3:['wp','極光'],gSS_1:['wp','天空の神殿'],gSSS_0:['wp','至高の間'],sold_2:['tool','gcloth'],gA_1:['tool','stardust'],art_2:['tool','rainbow'],gS_1:['tool','omega'],gSS_0:['tool','plat'],gSSS_1:['tool','divine']};
+QS.forEach(q=>{if(QRW[q.id])q.x=QRW[q.id]});
+const qxn=x=>x?(x[0]==='wp'?'壁紙「'+x[1]+'」':'道具「'+TOOLS.find(t=>t.id===x[1]).n+'」'):'';
+const QTIT=[['見習い職人',0],['駆け出しの職人',.05],['一人前の職人',.12],['熟練の職人',.25],['名工',.4],['巨匠',.6],['宝石の賢者',.8],['伝説のラピダリー',1]].map(a=>[a[0],Math.ceil(a[1]*QS.length)]);
+const QDP=[['sold','石を{n}個売る',[2,3,5],200],['profit','利益を合計{n}稼ぐ',[800,2500,6000],250],['gA','A以上の評価を{n}回とる',[1,2,3],350],['gS','S以上の評価を{n}回とる',[1,2],600],['art','芸術品を{n}個作る',[1,2],500],['pany','加工を{n}回行う',[2,4,6],300],['rare1','希少な石(原価¥1,500以上)を{n}個売る',[1,2],450]];
+const qymd=d=>d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate();
+function qi(){if(!S.q)S.q={c:{},cl:{},nt:{},coll:{},dd:'',dc:{},dcl:{},db:0,ds:0};const t=qymd(new Date());if(S.q.dd!==t){S.q.ds=S.q.dd===qymd(new Date(Date.now()-864e5))?S.q.ds+1:1;S.q.dd=t;S.q.dc={};S.q.dcl={};S.q.db=0}return S.q}
+const qval=l=>qst[l.k]?qst[l.k]():(S.q.c[l.k]||0);
+const qa=(k,n)=>{qi();n=n||1;S.q.c[k]=(S.q.c[k]||0)+n;S.q.dc[k]=(S.q.dc[k]||0)+n};
+const qm=(k,v)=>{qi();if(v>(S.q.c[k]||0))S.q.c[k]=v};
+const qrank=()=>{const n=Object.keys(S.q.cl).length;let r=0;QTIT.forEach((a,i)=>{if(n>=a[1])r=i});return r};
+const qtit=()=>{qi();return QTIT[qrank()][0]};
+function qdaily(){qi();const M=1+Math.floor(Object.keys(S.q.cl).length/20);let h=0;for(const ch of S.q.dd)h=(h*31+ch.charCodeAt(0))>>>0;const r=()=>(h=(h*1664525+1013904223)>>>0)/4294967296;const pool=QDP.slice(),out=[];
+  for(let i=0;i<3;i++){const p=pool.splice(Math.floor(r()*pool.length),1)[0],ti=Math.floor(r()*p[2].length),g=p[2][ti]*(p[0]==='profit'?M:1);out.push({id:'d'+i,k:p[0],g,t:p[1].replace('{n}',p[0]==='profit'?yen(g):g),m:Math.round(p[3]*(ti+1)*M),s:1})}return out}
+const qready=()=>QS.filter(q=>qval(q.l)>=q.g&&!S.q.cl[q.id]);
+const qdready=()=>qdaily().filter(q=>(S.q.dc[q.k]||0)>=q.g&&!S.q.dcl[q.id]);
+const qbonusOk=()=>qdaily().every(q=>S.q.dcl[q.id])&&!S.q.db;
+function qbadge(){const n=qready().length+qdready().length+(qbonusOk()?1:0),e=$('qBadge');if(!e)return;e.textContent=n;e.style.display=n?'block':'none';$('qB').classList.toggle('has',n>0)}
+let qtm;function qtoast(h){sfxT(h);const t=$('qt');t.innerHTML=h;t.classList.remove('show');void t.offsetWidth;t.classList.add('show');clearTimeout(qtm);qtm=setTimeout(()=>t.classList.remove('show'),3200)}
+function qcheck(){qi();const nw=[];QS.forEach(q=>{if(!S.q.nt[q.id]&&qval(q.l)>=q.g){S.q.nt[q.id]=1;nw.push(q.n)}});
+  qdaily().forEach(q=>{const id=S.q.dd+q.id;if(!S.q.nt[id]&&(S.q.dc[q.k]||0)>=q.g){S.q.nt[id]=1;nw.push('デイリー '+q.t)}});
+  if(nw.length){qtoast('<small>クエスト達成！</small><b>'+nw[0]+(nw.length>1?'　他'+(nw.length-1)+'件':'')+'</b>');}
+  qbadge();if($('questO').classList.contains('show'))qrender()}
+function qs(){try{qi();if((S.money||0)>(S.q.c.maxMoney||0))S.q.c.maxMoney=S.money;qcheck()}catch(e){}}
+function qfin(broken,v,p,gi){qi();qa('sold');
+  if(broken){qa('broken');S.q.c.sNB=0;S.q.c.sA=0}
+  else{if(p>0)qa('profit',Math.round(p));if(gi<=3)qa('gA');if(gi<=2)qa('gS');if(gi<=1)qa('gSS');if(gi===0)qa('gSSS');
+    S.q.c.sNB=(S.q.c.sNB||0)+1;qm('streakNB',S.q.c.sNB);S.q.c.sA=gi<=3?(S.q.c.sA||0)+1:0;qm('streakA',S.q.c.sA);
+    S.q.coll[stone.n]=1;{const r=(S.ix=S.ix||{})[stone.n]||(S.ix[stone.n]={n:0,b:99});r.n++;r.b=Math.min(r.b,gi)}if(stone.base>=1500)qa('rare1');if(stone.base>=5000)qa('rare2');qa('s_'+stone.n);qa('t_'+S.tool);qm('procN',Object.keys(proc).length)}
+  qm('maxV',Math.round(v));qm('maxP',Math.round(p))}
+function qclaim(id,dly){const q=dly?qdaily().find(x=>x.id===id):QS.find(x=>x.id===id);if(!q)return;const done=dly?(S.q.dc[q.k]||0)>=q.g&&!S.q.dcl[id]:qval(q.l)>=q.g&&!S.q.cl[id];if(!done)return;
+  (dly?S.q.dcl:S.q.cl)[id]=1;S.money+=q.m;S.stock+=q.s;
+  if(q.x){if(q.x[0]==='wp'){const i=WP.findIndex(w=>w[0]===q.x[1]);if(i>=0&&!S.wpOwn.includes(i))S.wpOwn.push(i)}else if(!S.owned.includes(q.x[1]))S.owned.push(q.x[1]);qtoast('<small>特典を獲得！</small><b>'+qxn(q.x)+'</b>')}}
+function qbonus(){if(!qbonusOk())return;S.q.db=1;S.money+=500*(1+Math.floor(Object.keys(S.q.cl).length/20))+100*Math.min(S.q.ds,7);S.stock+=3}
+let qtab='day',qani=true;
+function qrow(n,d,v,g,m,s,st,at,pip,x){const pc=Math.min(100,Math.floor(v/g*100));
+  return '<div class="row q'+(st==='cl'?' qdone':'')+'"><div style="flex:1;min-width:0"><b>'+n+'</b>'+(pip?'<span class="pip">'+pip+'</span>':'')+'<small>'+d+'</small><div class="qbar"><i style="width:'+pc+'%"></i><span>'+Math.min(v,g).toLocaleString()+' / '+g.toLocaleString()+'</span></div><small>報酬 '+yen(m)+(s?'＋研磨剤×'+s:'')+(x?'＋'+x:'')+'</small></div>'
+  +(st==='ok'?sb(at,'受け取る','gold'):sb('',st==='cl'?'達成済':pc+'%','',true))+'</div>'}
+function qrender(){qi();const n=Object.keys(S.q.cl).length,ri=qrank(),nx=QTIT[ri+1],rd=qready().length+qdready().length+(qbonusOk()?1:0);
+  let h='<div class="hd"><b>クエスト</b><span>'+yen(S.money)+'</span></div><div class="qrank"><div><small>称号</small><b>'+QTIT[ri][0]+'</b></div><div class="qr2"><small>達成 '+n+' / '+QS.length+(nx?'　次の称号まで'+(nx[1]-n):'　全称号を獲得')+'</small><div class="bar"><i style="width:'+Math.min(100,n/QS.length*100)+'%"></i></div></div></div>'
+   +'<div class="tabs">'+QC.map(t=>'<button data-qt="'+t[0]+'" class="'+(qtab===t[0]?'on':'')+'">'+t[1]+'</button>').join('')+'</div>';
+  if(rd)h+=sb('data-qa="1"','全て受け取る ('+rd+')','gold',false).replace('<button','<button style="width:100%;margin:4px 0 6px"');
+  if(qtab==='day'){const dl=qdaily();h+='<div class="qsec">今日のクエスト　連続ログイン '+S.q.ds+'日</div>';
+    dl.forEach(q=>{const v=S.q.dc[q.k]||0,st=S.q.dcl[q.id]?'cl':v>=q.g?'ok':'ing';h+=qrow('デイリー',q.t,v,q.g,q.m,q.s,st,'data-qd="'+q.id+'"')});
+    const all=dl.filter(q=>S.q.dcl[q.id]).length,bm=500*(1+Math.floor(n/20))+100*Math.min(S.q.ds,7);
+    h+=qrow('全達成ボーナス','今日の3つをすべて受け取る',all,3,bm,3,S.q.db?'cl':qbonusOk()?'ok':'ing','data-qb="1"')}
+  else{const rows=QL.filter(l=>l.c===qtab).map(l=>{const a=QS.filter(q=>q.l===l),c=a.filter(q=>S.q.cl[q.id]).length,cur=a.find(q=>!S.q.cl[q.id])||a[a.length-1],v=qval(l),st=S.q.cl[cur.id]?'cl':v>=cur.g?'ok':'ing';return{cur,v,st,pip:'★'.repeat(c)+'☆'.repeat(a.length-c),k:st==='ok'?2:st==='ing'?1+v/cur.g:0}}).sort((x,y)=>y.k-x.k);
+    rows.forEach(r=>{h+=qrow(r.cur.n,r.cur.d,r.v,r.cur.g,r.cur.m,r.cur.s,r.st,'data-q="'+r.cur.id+'"',r.pip,qxn(r.cur.x))})}
+  h+='<div style="margin-top:10px"><button data-a="qx" class="on" style="width:100%">閉じる</button></div>';$('quest').innerHTML=h;if(qani){qani=false;$('quest').querySelectorAll('.row').forEach((r,i)=>{r.classList.add('ani');r.style.animationDelay=Math.min(i,10)*45+'ms'})}}
+$('qB').onclick=()=>{qi();qani=true;qrender();$('questO').classList.add('show')};
+$('quest').onclick=e=>{const b=e.target.closest('button');if(!b||b.disabled)return;const d=b.dataset,r0=qrank();
+  if(d.a==='qx'){$('questO').classList.remove('show');return}
+  if(d.qt){qtab=d.qt;qani=true;qrender();return}
+  if(d.q)qclaim(d.q,0);else if(d.qd)qclaim(d.qd,1);else if(d.qb)qbonus();
+  else if(d.qa){qready().forEach(q=>qclaim(q.id,0));qdready().forEach(q=>qclaim(q.id,1));qbonus()}
+  save();ui();qrender();qbadge();if(qrank()>r0)qtoast('<small>称号を獲得！</small><b>'+qtit()+'</b>')};
+I18N.unshift(['✦光る所が削り残し','✦ Glowing = unpolished'],['削り残し','Unpolished']);
+I18N.push(['クエスト達成！','Quest complete! '],['特典を獲得！','Reward unlocked! '],['神の領域','Divine'],['称号を獲得！','New title! '],['クエスト','Quests'],['全て受け取る','Claim all'],['受け取る','Claim'],['達成済','Done'],['デイリー','Daily'],['今日のクエスト','Today'],['連続ログイン','Login streak'],['全達成ボーナス','Daily bonus'],['報酬 ','Reward '],['称号','Title'],['売買','Trade'],['評価','Grade'],['加工','Craft'],['収集','Collect'],['成長','Growth']);
+qi();qbadge();
+
+// ---- layout + motion ----
+const RM_=matchMedia('(prefers-reduced-motion:reduce)').matches;
+function lay(){const b=document.querySelector('.top').getBoundingClientRect().bottom;window._tb=Math.ceil(b+8);document.documentElement.style.setProperty('--topb',window._tb+'px')}
+addEventListener('resize',lay);new ResizeObserver(lay).observe(document.querySelector('.top'));if(document.fonts)document.fonts.ready.then(lay);lay();
+function burst(x,y,n,big){if(RM_)return;const cols=['#fff1bd','#e8c872','#ffd1e8','#9ff3ea','#ffffff'];for(let i=0;i<n;i++){const e=document.createElement('i'),a=Math.random()*6.283,d=(big?90:45)+Math.random()*(big?170:70),c=cols[i%cols.length];e.className='sp';e.style.cssText='left:'+x+'px;top:'+y+'px;--dx:'+Math.cos(a)*d+'px;--dy:'+(Math.sin(a)*d-20)+'px;--s:'+(4+Math.random()*(big?9:6))+'px;background:'+c+';color:'+c+';animation-delay:'+(Math.random()*.1)+'s';document.body.appendChild(e);setTimeout(()=>e.remove(),1300)}}
+document.addEventListener('pointerdown',e=>{const b=e.target.closest&&e.target.closest('button');if(!b||b.disabled)return;audioInit();if(!/^(hold|tap|grind)$/.test(b.id))sfx(b.dataset.tab||b.dataset.qt?'tab':b.classList.contains('gold')?'tapG':'tap');const r=b.getBoundingClientRect();b.style.setProperty('--rx',(e.clientX-r.left)+'px');b.style.setProperty('--ry',(e.clientY-r.top)+'px');b.classList.remove('rip');void b.offsetWidth;b.classList.add('rip')},true);
+document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('button');if(!b||b.disabled)return;const r=b.getBoundingClientRect(),x=r.left+r.width/2,y=r.top+r.height/2,d=b.dataset;
+  if(b.closest('#quest')&&(d.q||d.qd||d.qb||d.qa)){burst(x,y,d.qa?40:20,!!d.qa);sfx('claim')}
+  else if(b.closest('#shop')&&(d.t||d.u||d.i||d.w||d.m||d.a==='jet')){burst(x,y,12);sfx('buy')}},true);
+(function(){const el=$('money'),desc=Object.getOwnPropertyDescriptor(Node.prototype,'textContent');let target=null,shown=0,raf=0;
+  Object.defineProperty(el,'textContent',{configurable:true,get(){return desc.get.call(el)},set(v){const n=parseInt(String(v).replace(/[^0-9-]/g,''),10);
+    if(isNaN(n)||RM_||target===null){desc.set.call(el,v);target=isNaN(n)?null:n;shown=target||0;return}
+    if(n===target)return;const from=shown,t0=performance.now();target=n;el.classList.remove('up','dn');void el.offsetWidth;el.classList.add(n>from?'up':'dn');if(n>from)sfx('coin');
+    cancelAnimationFrame(raf);const step=now=>{const k=Math.min(1,(now-t0)/650),e=1-Math.pow(1-k,3);shown=Math.round(from+(target-from)*e);desc.set.call(el,yen(shown));if(k<1)raf=requestAnimationFrame(step)};raf=requestAnimationFrame(step)}})})();
+let lastM=0;new MutationObserver(()=>{const v=parseInt($('pct').textContent)||0;const fl=v>=97;if(fl&&!$('bar').classList.contains('full'))sfx('ready');$('bar').classList.toggle('full',fl);const m=Math.floor(v/25);if(m>lastM&&v>0){const g=document.querySelector('.gauge'),r=g.getBoundingClientRect();g.classList.remove('pop');void g.offsetWidth;g.classList.add('pop');sfx('pop',m);burst(r.left+r.width*Math.min(1,v/100),r.top+r.height/2,v>=97?24:10,v>=97)}lastM=m}).observe($('pct'),{childList:true,characterData:true,subtree:true});
+let lastH='';new MutationObserver(()=>{const s=$('hint').textContent;if(s!==lastH){lastH=s;const h=$('hint');h.classList.remove('chg');void h.offsetWidth;h.classList.add('chg')}}).observe($('hint'),{childList:true,characterData:true,subtree:true});
+new MutationObserver(()=>{const r=$('res');if(!r.classList.contains('show'))return;setTimeout(()=>{const g=(document.querySelector('#resC .grade')||{}).textContent||'';const n=g==='SSS'?80:g==='SS'?55:g==='S'?38:g==='A'?22:g==='D'||!g?0:10;sfx('grade',g);if(n)burst(innerWidth/2,innerHeight*.36,n,n>=38)},500)}).observe($('res'),{attributes:true,attributeFilter:['class']});
+
+// ---- UI sounds ----
+function sweep(f1,f2,d,v,type){if(!AC)return;const t=AC.currentTime,o=AC.createOscillator(),g=AC.createGain();o.type=type||'sine';o.frequency.setValueAtTime(f1,t);o.frequency.exponentialRampToValueAtTime(f2,t+d);g.gain.setValueAtTime(.0001,t);g.gain.linearRampToValueAtTime(v,t+d*.2);g.gain.exponentialRampToValueAtTime(.0001,t+d);o.connect(g);g.connect(master);o.start(t);o.stop(t+d+.02)}
+const arp=(fs,gap,d,v,type)=>fs.forEach((f,i)=>setTimeout(()=>ping(f,d,v,type),i*gap));
+const sfxL={};
+function sfx(n,a){if(!AC)return;const t=performance.now();if(sfxL[n]&&t-sfxL[n]<50)return;sfxL[n]=t;
+  switch(n){
+  case'tap':ping(1900,.05,.05,'triangle');ping(1200,.07,.035);break;
+  case'tapG':ping(1400,.06,.07,'triangle');ping(2100,.1,.05);break;
+  case'tab':arp([1500,1900],45,.07,.05,'triangle');break;
+  case'open':sweep(300,900,.22,.07);ping(1800,.18,.03);break;
+  case'close':sweep(800,260,.18,.06);break;
+  case'buy':arp([1319,1760,2349],70,.18,.09,'triangle');ping(260,.12,.06,'square');break;
+  case'coin':arp([1976,2637],55,.12,.06,'triangle');break;
+  case'claim':arp([523,659,784,1047,1319],70,.4,.12,'triangle');setTimeout(()=>arp([2093,2637],60,.3,.05),380);break;
+  case'quest':arp([880,1175,1568],90,.45,.1);break;
+  case'reward':arp([784,988,1175,1568,1976],80,.45,.1);break;
+  case'rank':arp([523,659,784,1047,784,1047,1319],90,.5,.12,'triangle');setTimeout(()=>arp([2093,2637,3136],70,.4,.05),700);break;
+  case'pop':ping(900+(a||1)*250,.15,.07,'triangle');ping(1800+(a||1)*400,.2,.04);break;
+  case'ready':arp([1319,1760],90,.35,.07);break;
+  case'sp':ping(3200+Math.random()*1500,.12,.025);break;
+  case'grade':{const m={SSS:[[392,523,659,784,1047,1319,1568,2093],75,.6,.13],SS:[[523,659,784,1047,1319,1568],80,.5,.12],S:[[659,784,988,1319],90,.45,.11],A:[[523,659,784],100,.4,.1],B:[[523,659],110,.35,.09],C:[[494,523],120,.3,.08],D:[[392,311],140,.4,.08]}[a];
+    if(m)arp(m[0],m[1],m[2],m[3],'triangle');if(a==='SSS'||a==='SS')for(let i=0;i<(a==='SSS'?10:6);i++)setTimeout(()=>ping(2000+Math.random()*3000,.2,.04),500+i*70);break}}}
+function sfxT(h){sfx(h.includes('称号')?'rank':h.includes('特典')?'reward':'quest')}
+document.querySelectorAll('.ov').forEach(o=>{o._s=false;new MutationObserver(()=>{const s=o.classList.contains('show');if(s!==o._s){o._s=s;sfx(s?'open':'close')}}).observe(o,{attributes:true,attributeFilter:['class']})});
+addEventListener('resize',resize);
+
+if(S.pend){settle(S.pend);S.pend=null;save()}
+applyWp();applyLang();resize();
+if(!S.name)$('nameO').classList.add('show');else newStone();
+
+// ---- codex 3D + minigame juice ----
+let cxF=0,cxR=null,cxA=0,cmb=0,cmbT=0;
+const CXR=['すべて','コモン','アンコモン','レア','エピック','レジェンド','亜種'],rIdx=b=>b<300?1:b<1500?2:b<5000?3:b<30000?4:5,rgb3=t=>t.c.map(x=>Math.round(x*255)).join(',');
+function cxStop(){cancelAnimationFrame(cxA);if(cxR){cxR.dispose();try{cxR.forceContextLoss()}catch(e){}cxR=null}}
+function renderIdx(){cxStop();const cl=(S.q&&S.q.coll)||{},ix=S.ix||{},L=STONES.slice().sort((a,b)=>a.base-b.base),got=L.filter(t=>cl[t.n]).length,p=Math.round(got/L.length*100),SB=L.filter(t=>t.sub),sg=SB.filter(t=>cl[t.n]).length;window._cxL=L;
+ let h='<div class="cx-head"><div class="cx-ring" style="--p:'+p+'"><b>'+p+'<small>%</small></b></div><div><div class="cx-t">鉱石図鑑</div><div class="cx-s">発見 '+got+' / '+L.length+'　タップで3D表示</div><div class="cx-s cx-s2">亜種 '+sg+' / '+SB.length+'</div></div></div><div class="cx-tabs">'+CXR.map((n,i)=>'<button data-cf="'+i+'" class="'+(cxF===i?'on':'')+'">'+n+'</button>').join('')+'</div><div class="cx-grid">',k=0;
+ L.forEach((t,i)=>{if(cxF===6?!t.sub:(cxF&&rIdx(t.base)!==cxF))return;const r=rarL(t.base),f=!!cl[t.n],g=ix[t.n];
+  h+='<div class="cx-card'+(f?'':' lk')+(t.sub?' sb':'')+'" data-cx="'+i+'" style="--rc:'+r[1]+';--gc:'+rgb3(t)+';--i:'+(k++)+'">'+(t.sub?'<u class="cx-sub">亜種</u>':'')+'<div class="cx-orb"><span>'+(f?'':'？')+'</span></div><b>'+(f?t.n:'？？？')+'</b><em>'+r[0]+'</em><small>'+(f?(g?'最高 '+GR[g.b][1]+' ・ '+g.n+'個':''):'未発見')+'</small></div>'});
+ $('idx').innerHTML=h+'</div><button data-ix="1" class="on" style="width:100%;margin-top:12px">閉じる</button>'}
+function cxVar(t,cl){let h='';if(t.sub)h+='<div class="cx-subl"><u class="cx-sub">亜種</u><span>原種: '+t.p+'</span></div>';
+ const ch=STONES.filter(s=>s.sub&&s.p===t.n).sort((a,b)=>a.base-b.base);
+ if(ch.length)h+='<div class="cx-vars"><small>亜種 '+ch.filter(s=>cl[s.n]).length+' / '+ch.length+'</small>'+ch.map(s=>'<span class="'+(cl[s.n]?'':'lk')+'">'+(cl[s.n]?s.n:'？？？')+'</span>').join('')+'</div>';return h}
+function cxDetail(i){const t=window._cxL[i],r=rarL(t.base),g=(S.ix||{})[t.n],B=[['透明度',t.t],['輝き',t.f],['虹彩',t.i],['模様',t.v],['星彩',t.s]];
+ $('idx').innerHTML='<div class="cx-det" style="--rc:'+r[1]+';--gc:'+rgb3(t)+'"><div class="cx-stage"><canvas id="cxcv"></canvas><div class="cx-rar">'+r[0]+'</div></div><div class="cx-name">'+t.n+'</div>'+cxVar(t,(S.q&&S.q.coll)||{})+'<div class="cx-bars">'+B.map((b,j)=>'<div class="cx-b"><span>'+b[0]+'</span><i><u style="--w:'+Math.round(Math.min(1,b[1])*100)+'%;--d:'+j*90+'ms"></u></i></div>').join('')+'</div><div class="cx-info"><div><small>原価</small><b>'+yen(t.base)+'</b></div><div><small>最高評価</small><b>'+(g?GR[g.b][1]:'-')+'</b></div><div><small>売却数</small><b>'+(g?g.n:0)+'</b></div></div><div class="cx-info cx2"><div><small>比重</small><b>'+t.sg+'</b></div><div><small>最大重量</small><b>'+(g&&g.w?fmtG(g.w):'-')+'</b></div></div><p class="cx-hint">ドラッグで自由に回転</p><button data-cb="1" class="on" style="width:100%">図鑑に戻る</button></div>';cx3d(t)}
+function cx3d(t){const cv=$('cxcv');if(!cv)return;const W=cv.clientWidth||320,H=cv.clientHeight||270;cxR=new THREE.WebGLRenderer({canvas:cv,antialias:true,alpha:true});cxR.setPixelRatio(Math.min(devicePixelRatio,2));cxR.setSize(W,H,false);
+ const sc=new THREE.Scene(),cam=new THREE.PerspectiveCamera(36,W/H,.1,50);cam.position.set(0,.5,5);cam.lookAt(0,0,0);const col=new THREE.Color(t.c[0],t.c[1],t.c[2]),fac=t.f>.45||t.t>.5;
+ const geo=new THREE.IcosahedronGeometry(1.15,fac?(t.f>.8?1:0):4);
+ if(fac)geo.scale(1,1.15,1);else{const p=geo.attributes.position;for(let k=0;k<p.count;k++){const x=p.getX(k),y=p.getY(k),z=p.getZ(k),d=1+.09*Math.sin(x*3.1)*Math.sin(y*2.7)*Math.sin(z*3.3)+.04*Math.sin(x*7+y*5);p.setXYZ(k,x*d,y*d*.92,z*d)}geo.computeVertexNormals()}
+ const mat=new THREE.MeshPhysicalMaterial({color:col,metalness:.1+t.i*.3,roughness:fac?.06:.35,flatShading:fac,clearcoat:1,clearcoatRoughness:.06,emissive:col.clone().multiplyScalar(.14),transparent:t.t>.3,opacity:t.t>.3?1-t.t*.28:1}),g=new THREE.Group();
+ g.add(new THREE.Mesh(geo,mat));if(fac)g.add(new THREE.LineSegments(new THREE.EdgesGeometry(geo),new THREE.LineBasicMaterial({color:0xffffff,transparent:true,opacity:.4})));sc.add(g,new THREE.AmbientLight(0xffffff,.55));
+ const l1=new THREE.PointLight(0xffffff,1.4,0),l2=new THREE.PointLight(col,1.2,0),l3=new THREE.PointLight(0xfff1bd,.9,0);l1.position.set(3,3,4);l2.position.set(-3,-1,2);l3.position.set(0,-3,-3);sc.add(l1,l2,l3);
+ const ring=new THREE.Mesh(new THREE.TorusGeometry(1.9,.015,8,100),new THREE.MeshBasicMaterial({color:0xe8c872,transparent:true,opacity:.7}));ring.rotation.x=Math.PI/2;ring.position.y=-1.45;sc.add(ring);
+ const PA=new Float32Array(240);for(let k=0;k<240;k++)PA[k]=(Math.random()-.5)*(k%3===1?4:6);const pg=new THREE.BufferGeometry();pg.setAttribute('position',new THREE.BufferAttribute(PA,3));
+ const pts=new THREE.Points(pg,new THREE.PointsMaterial({size:.04,color:0xfff1bd,transparent:true,opacity:.8,blending:THREE.AdditiveBlending,depthWrite:false}));sc.add(pts);
+ let drag=0,lx=0,ly=0,vy=.01;const t0=performance.now();
+ cv.onpointerdown=e=>{drag=1;lx=e.clientX;ly=e.clientY;cv.setPointerCapture(e.pointerId)};cv.onpointermove=e=>{if(!drag)return;g.rotation.y+=(e.clientX-lx)*.012;g.rotation.x+=(e.clientY-ly)*.012;vy=(e.clientX-lx)*.0015;lx=e.clientX;ly=e.clientY};cv.onpointerup=cv.onpointercancel=()=>{drag=0};
+ const loop=now=>{cxA=requestAnimationFrame(loop);const k=Math.min(1,(now-t0)/900),e=1-Math.pow(1-k,3);if(!drag){g.rotation.y+=vy;vy+=(.01-vy)*.03;g.rotation.x*=.96}
+  g.scale.setScalar((.2+.8*e)*(1+.03*Math.sin(now/500)));g.position.y=Math.sin(now/700)*.08;if(t.i>.3)l2.color.setHSL((now/4000)%1,.7,.6);pts.rotation.y=now/9000;ring.rotation.z=now/3000;cxR.render(sc,cam)};
+ cxA=requestAnimationFrame(loop)}
+$('idx').onclick=e=>{const b=e.target.closest('button,.cx-card');if(!b)return;const d=b.dataset;
+ if(d.ix){cxStop();$('idxO').classList.remove('show')}else if(d.cb)renderIdx();else if(d.cf!==undefined){cxF=+d.cf;renderIdx()}
+ else if(d.cx!==undefined){const t=window._cxL[+d.cx];if(((S.q&&S.q.coll)||{})[t.n])cxDetail(+d.cx);else{b.classList.remove('shk');void b.offsetWidth;b.classList.add('shk');sfx('tap')}}};
+$('idxB').onclick=()=>{cxF=0;renderIdx();$('idxO').classList.add('show')};
+function cxFloat(x,y,txt,sz){const e=document.createElement('div');e.className='ft';e.textContent=txt;e.style.cssText='z-index:60;left:'+x+'px;top:'+y+'px;color:#ffe08a;font-size:'+sz+'px;--r:'+(Math.random()*16-8)+'deg;text-shadow:0 0 14px #ffd76a,0 2px 0 #000';document.body.appendChild(e);setTimeout(()=>e.remove(),1700)}
+function cxBig(q){const m=$('menu').getBoundingClientRect();burst(m.left+m.width/2,m.top+m.height/2,q>.85?60:q>.3?26:8,q>.85);cxFloat(m.left+m.width/2,m.top+60,q>.85?'PERFECT!':q>.3?'GOOD':'MISS',q>.85?34:26);if(q>.3)chime();else crack()}
+$('menu').addEventListener('pointerdown',e=>{if(FOCUS||!$('menuO').classList.contains('show'))return;const b=e.target.closest('button,canvas,i');if(!b||(b.dataset&&b.dataset.a)||b.tagName==='BODY')return;
+ const n=performance.now();cmb=n-cmbT<700?cmb+1:1;cmbT=n;burst(e.clientX,e.clientY,4+Math.min(cmb,12),cmb%10===0);const m=$('menu');m.classList.remove('hit');void m.offsetWidth;m.classList.add('hit');
+ if(cmb>=3&&cmb%3===0){cxFloat(e.clientX,e.clientY-40,'COMBO ×'+cmb,20+Math.min(cmb,20));ping(700+Math.min(cmb,30)*40,.1,.07,'triangle')}},true);
+
+// ---- INVEST (展示・投資) ----
+const IV_MS=60000,iv={sel:null,arm:0,prev:{},pulse:0,pup:1,dv:0,armT:0};
+const exVal=e=>Math.max(1,Math.round(e.v0*Math.pow(10,e.lm)));
+const tOf=e=>[...STONES,BI].find(s=>s.n===e.sn)||STONES[0];
+const pcs=d=>(d>=0?'+':'−')+Math.abs(d*100).toFixed(Math.abs(d)>=10?0:1)+'%';
+const mxs=l=>{const m=Math.pow(10,l);return '×'+m.toFixed(m>=10?1:2)};
+const fmtT=ms=>{const s=Math.floor(ms/1000),h=Math.floor(s/3600),m=Math.floor(s%3600/60);return(h?h+'時間':'')+(h||m?m+'分':'')+(s%60)+'秒'};
+const sgn=(v)=>(v>=0?'▲ +':'▼ −')+yen(Math.abs(v));
+function stepLm(x){const s=Math.random()<.08?(Math.random()*2-1):(Math.random()*2-1)*.3;let y=x+s;for(let i=0;i<4&&(y>1||y<-1);i++)y=y>1?2-y:-2-y;return Math.max(-1,Math.min(1,y))}
+function invTick(){const now=Date.now();let ch=0;
+  for(const e of S.inv){let n=0;
+    while(now-e.lt>=IV_MS&&n<1440){const o=e.lm;e.lm=stepLm(o);e.lt+=IV_MS;n++;e.h.push(e.lm);if(e.h.length>120)e.h.shift();
+      if(e.lm>o)e.u++;else if(e.lm<o)e.d++;if(e.lm>e.hi)e.hi=e.lm;if(e.lm<e.lo)e.lo=e.lm;ch++}
+    if(now-e.lt>=IV_MS)e.lt=now}
+  return ch}
+function tw(el,from,to,ms,fmt){cancelAnimationFrame(el._r);if(RM_||from===to){el.textContent=fmt(to);return}
+  const t0=performance.now(),st=now=>{const k=Math.min(1,(now-t0)/ms),e=1-Math.pow(1-k,3);el.textContent=fmt(from+(to-from)*e);if(k<1)el._r=requestAnimationFrame(st)};el._r=requestAnimationFrame(st)}
+function ivChart(e,W,H,full,anim){
+  const n=e.h.length,pl=full?34:4,pr=6,pt=full?8:4,pb=full?14:4,
+    X=i=>n<2?pl+(W-pl-pr)/2:pl+i/(n-1)*(W-pl-pr),Y=l=>pt+(1-(l+1)/2)*(H-pt-pb);
+  const P=e.h.map((l,i)=>[X(i),Y(l)]),up=e.lm>=0,col=up?'#6ee7a1':'#ff7a8a',id='g'+(full?'f':'s')+e.id.replace(/\W/g,'');
+  let d='',a='';
+  if(n>=2){d='M'+P[0][0].toFixed(1)+' '+P[0][1].toFixed(1);
+    for(let i=0;i<n-1;i++){const p0=P[i-1]||P[i],p1=P[i],p2=P[i+1],p3=P[i+2]||p2;
+      d+='C'+(p1[0]+(p2[0]-p0[0])/6).toFixed(1)+' '+(p1[1]+(p2[1]-p0[1])/6).toFixed(1)+' '+(p2[0]-(p3[0]-p1[0])/6).toFixed(1)+' '+(p2[1]-(p3[1]-p1[1])/6).toFixed(1)+' '+p2[0].toFixed(1)+' '+p2[1].toFixed(1)}
+    a=d+'L'+P[n-1][0].toFixed(1)+' '+(H-pb)+'L'+P[0][0].toFixed(1)+' '+(H-pb)+'Z'}
+  let g='';
+  if(full)[[1,'×10'],[.5,'×3.2'],[0,'×1'],[-.5,'×0.32'],[-1,'×0.1']].forEach(r=>{const y=Y(r[0]).toFixed(1);
+    g+='<line x1="'+pl+'" x2="'+(W-pr)+'" y1="'+y+'" y2="'+y+'" stroke="rgba(255,255,255,'+(r[0]===0?.28:.1)+')" '+(r[0]===0?'stroke-dasharray="4 4"':'')+'/><text x="2" y="'+(+y+3)+'">'+r[1]+'</text>'});
+  else g='<line x1="'+pl+'" x2="'+(W-pr)+'" y1="'+Y(0).toFixed(1)+'" y2="'+Y(0).toFixed(1)+'" stroke="rgba(255,255,255,.18)" stroke-dasharray="3 4"/>';
+  const lp=P[n-1];
+  return '<svg viewBox="0 0 '+W+' '+H+'" class="ivsvg'+(anim?' an':'')+'"><defs><linearGradient id="'+id+'" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="'+col+'" stop-opacity=".35"/><stop offset="1" stop-color="'+col+'" stop-opacity="0"/></linearGradient></defs>'+g
+   +(a?'<path class="ar" d="'+a+'" fill="url(#'+id+')"/><path class="ln" d="'+d+'" pathLength="1" fill="none" stroke="'+col+'" stroke-width="'+(full?2.2:1.8)+'" stroke-linecap="round" stroke-linejoin="round"/>':'')
+   +'<circle class="dot" cx="'+lp[0].toFixed(1)+'" cy="'+lp[1].toFixed(1)+'" r="'+(full?3.5:2.8)+'" fill="'+col+'"/></svg>'}
+function invListHtml(first){
+  const c=cap(),n=S.inv.length,tot=S.inv.reduce((a,e)=>a+exVal(e),0),tot0=S.inv.reduce((a,e)=>a+e.v0,0);
+  let h='<div class="'+(first?'':'noan')+'"><div class="hd"><b>インベスト</b><span>'+n+' / '+c+'</span></div>'
+   +'<div class="iv-sum"><div><small>展示中の合計価値</small><b>'+yen(tot)+'</b></div><div><small>展示時からの増減</small><b class="'+(tot>=tot0?'iv-up':'iv-dn')+'">'+(n?sgn(tot-tot0):'—')+'</b></div></div>';
+  S.inv.forEach((e,i)=>{const t=tOf(e),v=exVal(e),d=v/e.v0-1,up=d>=0;
+    h+='<div class="iv-card" data-ex="'+e.id+'" style="--gc:'+rgb3(t)+';--i:'+i+'"><div class="iv-orb"></div><div class="iv-mid"><b>'+e.nm+'</b><small>'+e.g+'評価 ・ 展示時 '+yen(e.v0)+'</small><div class="iv-cd"><i></i></div></div>'
+     +'<div class="iv-r"><b class="iv-v" data-id="'+e.id+'">'+yen(v)+'</b><em class="'+(up?'iv-up':'iv-dn')+'">'+(up?'▲ ':'▼ ')+pcs(d)+'</em></div><div class="iv-sp">'+ivChart(e,300,46,false,first)+'</div></div>'});
+  for(let i=n;i<c;i++)h+='<div class="iv-empty">空きスロット</div>';
+  h+='<p class="iv-note" style="text-align:center">展示した石は元に戻せません。売却のみ可能です。<br>枠はショップの強化で最大13まで増やせます。</p></div><button data-a="close" class="on">閉じる</button>';
+  return h}
+function ivTiles(e,noan){
+  const t=tOf(e),v=exVal(e),n=e.h.length,pf=v-e.cost,d=v/e.v0-1,lastP=n>1?Math.pow(10,e.h[n-1]-e.h[n-2])-1:0;
+  let st=0,dir=0;for(let i=n-1;i>0;i--){const x=Math.sign(e.h[i]-e.h[i-1]);if(!x)break;if(!dir)dir=x;if(x!==dir)break;st++}
+  const df=[];for(let i=Math.max(1,n-10);i<n;i++)df.push(e.h[i]-e.h[i-1]);
+  let vol='計測中';if(df.length>=3){const m=df.reduce((a,b)=>a+b,0)/df.length,sd=Math.sqrt(df.reduce((a,b)=>a+(b-m)*(b-m),0)/df.length);vol=sd<.1?'穏やか':sd<.2?'やや荒い':sd<.3?'荒い':'大荒れ'}
+  const hv=l=>Math.max(1,Math.round(e.v0*Math.pow(10,l))),cl=x=>x>=0?'iv-up':'iv-dn';
+  const T=[['展示時の価値',yen(e.v0)],['仕入れ値',yen(e.cost)],
+   ['累計増減',sgn(v-e.v0)+' ('+pcs(d)+')',cl(d)],['売却した場合の損益',sgn(pf),cl(pf)],
+   ['直近1分の変動',n>1?(lastP>=0?'▲ ':'▼ ')+pcs(lastP):'—',cl(lastP)],['倍率',mxs(e.lm)],
+   ['最高値',yen(hv(e.hi))+' ('+mxs(e.hi)+')'],['最安値',yen(hv(e.lo))+' ('+mxs(e.lo)+')'],
+   ['上昇 / 下落',e.u+' / '+e.d+' 回'],['連続',st?st+'回連続'+(dir>0?'上昇':'下落'):'—',st?(dir>0?'iv-up':'iv-dn'):''],
+   ['変動の荒さ',vol],['評価',e.g+'　'+e.sc+'点'],
+   ['経過時間','<span id="ivEl">'+fmtT(Date.now()-e.t0)+'</span>'],['次の更新まで','<span id="ivCd">'+Math.ceil(Math.max(0,IV_MS-(Date.now()-e.lt))/1000)+'秒</span>']];
+  return '<div class="iv-grid '+(noan?'noan':'')+'">'+T.map((r,i)=>'<div class="iv-t" style="--i:'+i+'"><small>'+r[0]+'</small><b class="'+(r[2]||'')+'">'+r[1]+'</b></div>').join('')+'</div>'}
+const ivGaugeX=e=>((e.lm+1)/2*100).toFixed(1);
+function invDetailHtml(e){
+  const t=tOf(e),v=exVal(e),d=v/e.v0-1,mc=e.mut?MUTS[e.mut]:null,rem=Math.max(0,IV_MS-(Date.now()-e.lt));
+  return '<div class="iv-det" style="--gc:'+rgb3(t)+'"><div class="iv-stage"><canvas id="ivcv"></canvas>'+(mc?'<div class="iv-tag" style="color:'+mc.c+'">'+mc.n+' ×'+mc.m+'</div>':'')+'<div class="iv-hint">ドラッグで回転 / ホイールで拡大</div></div>'
+   +'<div class="iv-name">'+e.nm+'</div><div class="iv-sub">'+(e.art!==null&&e.art!==undefined?SH[e.art].n+'カット ・ ':'')+e.g+'評価 '+e.sc+'点</div>'
+   +'<div class="iv-big"><div><small>現在の価値</small><b id="ivV">'+yen(v)+'</b><span id="ivD" class="iv-chg '+(d>=0?'iv-up':'iv-dn')+'">'+sgn(v-e.v0)+' ('+pcs(d)+')</span></div>'
+   +'<div class="iv-ring"><svg viewBox="0 0 46 46"><circle class="bg" cx="23" cy="23" r="19"/><circle id="ivRg" class="fg" cx="23" cy="23" r="19" style="stroke-dashoffset:'+(119.4*(1-(IV_MS-rem)/IV_MS)).toFixed(1)+'"/></svg><span>1分</span></div></div>'
+   +'<div class="iv-chart" id="ivCh">'+ivChart(e,320,150,true,true)+'</div>'
+   +'<div class="iv-g"><div class="iv-gt"><i id="ivMk" style="left:'+ivGaugeX(e)+'%"></i></div><div class="iv-gl"><span>×0.1</span><span>×1</span><span>×10</span></div></div>'
+   +'<div id="ivT">'+ivTiles(e,false)+'</div>'
+   +'<button data-a="sellx" class="gold" id="ivSell">この展示物を売却する　'+yen(v)+'</button><button data-a="back" class="on">一覧に戻る</button></div>'}
+function invRender(first){
+  if(iv.sel&&!S.inv.find(e=>e.id===iv.sel))iv.sel=null;
+  ivStop();const box=$('inv');
+  if(iv.sel){const e=S.inv.find(x=>x.id===iv.sel);box.innerHTML=invDetailHtml(e);iv.dv=exVal(e);iv.arm=0;iv3d(e,tOf(e));
+    const el=$('ivV');tw(el,e.v0,exVal(e),1100,yen)}
+  else{box.innerHTML=invListHtml(first);
+    box.querySelectorAll('.iv-v').forEach(el=>{const e=S.inv.find(x=>x.id===el.dataset.id),cur=exVal(e),p=iv.prev[e.id]!==undefined?iv.prev[e.id]:(first?e.v0:cur);if(p!==cur)tw(el,p,cur,900,yen);iv.prev[e.id]=cur});
+    invLive()}}
+function invOnTick(){
+  if(!$('invO').classList.contains('show'))return;
+  if(!iv.sel){invRender(false);return}
+  const e=S.inv.find(x=>x.id===iv.sel);if(!e)return;const v=exVal(e),d=v/e.v0-1,old=iv.dv,up=v>=old;iv.dv=v;
+  const V=$('ivV');tw(V,old,v,900,yen);V.classList.remove('fl');void V.offsetWidth;V.classList.add('fl');
+  const D=$('ivD');D.className='iv-chg '+(d>=0?'iv-up':'iv-dn');D.textContent=sgn(v-e.v0)+' ('+pcs(d)+')';
+  $('ivCh').innerHTML=ivChart(e,320,150,true,false);$('ivMk').style.left=ivGaugeX(e)+'%';$('ivT').innerHTML=ivTiles(e,true);
+  const sb=$('ivSell');if(sb&&!iv.arm)sb.textContent='この展示物を売却する　'+yen(v);
+  iv.pulse=1;iv.pup=up;if(up)sfx('coin');else if(typeof ping==='function')ping(260,.14,.05,'triangle')}
+function invLive(){
+  if(!$('invO').classList.contains('show'))return;const now=Date.now();
+  if(iv.sel){const e=S.inv.find(x=>x.id===iv.sel);if(!e)return;const rem=Math.max(0,IV_MS-(now-e.lt));
+    const a=$('ivEl'),b=$('ivCd'),r=$('ivRg');if(a)a.textContent=fmtT(now-e.t0);if(b)b.textContent=Math.ceil(rem/1000)+'秒';if(r)r.style.strokeDashoffset=(119.4*(1-(IV_MS-rem)/IV_MS)).toFixed(1)}
+  else S.inv.forEach(e=>{const c=document.querySelector('.iv-card[data-ex="'+e.id+'"] .iv-cd i');if(c)c.style.width=Math.min(100,(now-e.lt)/IV_MS*100).toFixed(1)+'%'})}
+// 3D ケース
+let ivR=null,ivA=0;
+function ivStop(){cancelAnimationFrame(ivA);if(ivR){ivR.dispose();try{ivR.forceContextLoss()}catch(_){}ivR=null}}
+function ivGeo(e,t){
+  const art=e.art,V=(x,y)=>new THREE.Vector2(x,y);let g,fl=true;
+  if(art===0)g=new THREE.LatheGeometry([V(0,-1.15),V(.55,-.55),V(1,.1),V(.95,.2),V(.62,.62),V(0,.62)],8);
+  else if(art===1){g=new THREE.BoxGeometry(1.55,1.55,1.55);g.rotateY(.6);g.rotateX(.5)}
+  else if(art===2){const sh=new THREE.Shape();SH[2].poly.forEach((p,i)=>i?sh.lineTo(p[0]*1.3,-p[1]*1.3):sh.moveTo(p[0]*1.3,-p[1]*1.3));sh.closePath();
+    g=new THREE.ExtrudeGeometry(sh,{depth:.45,bevelEnabled:true,bevelThickness:.12,bevelSize:.1,bevelSegments:2});g.center()}
+  else if(art===3){const P=[];for(let k=0;k<=24;k++){const v=k/24;P.push(V(Math.pow(Math.sin(Math.PI*v),v<.5?.6:1.25)*(1.05-.55*v)*.95,(v-.5)*2.4))}g=new THREE.LatheGeometry(P,32);fl=false}
+  else{fl=t.f>.45||t.t>.5;g=new THREE.IcosahedronGeometry(1.15,fl?(t.f>.8?1:0):4);
+    if(fl)g.scale(1,1.15,1);else{const p=g.attributes.position;for(let k=0;k<p.count;k++){const x=p.getX(k),y=p.getY(k),z=p.getZ(k),d=1+.09*Math.sin(x*3.1)*Math.sin(y*2.7)*Math.sin(z*3.3)+.04*Math.sin(x*7+y*5);p.setXYZ(k,x*d,y*d*.92,z*d)}g.computeVertexNormals()}}
+  return{g,fl}}
+function iv3d(e,t){
+  const cv=$('ivcv');if(!cv)return;let R;try{R=new THREE.WebGLRenderer({canvas:cv,antialias:true,alpha:true})}catch(_){return}
+  ivR=R;const W=cv.clientWidth||320,H=cv.clientHeight||290;R.setPixelRatio(Math.min(devicePixelRatio,2));R.setSize(W,H,false);
+  const sc=new THREE.Scene(),cam=new THREE.PerspectiveCamera(34,W/H,.1,50);cam.position.set(0,.9,9.4);cam.lookAt(0,-.1,0);
+  const col=new THREE.Color(t.c[0],t.c[1],t.c[2]),mc=e.mut?new THREE.Color(MUTS[e.mut].c):null,gold=new THREE.Color(0xe8c872);
+  const rot=new THREE.Group(),G=ivGeo(e,t);
+  const mat=new THREE.MeshPhysicalMaterial({color:col,metalness:.1+t.i*.3,roughness:G.fl?.06:.3,flatShading:G.fl,clearcoat:1,clearcoatRoughness:.06,emissive:(mc||col).clone().multiplyScalar(mc?.25:.14),transparent:t.t>.3,opacity:t.t>.3?1-t.t*.25:1});
+  const gem=new THREE.Group();gem.add(new THREE.Mesh(G.g,mat));
+  if(G.fl)gem.add(new THREE.LineSegments(new THREE.EdgesGeometry(G.g),new THREE.LineBasicMaterial({color:0xffffff,transparent:true,opacity:.4})));
+  rot.add(gem);
+  const glass=new THREE.Mesh(new THREE.BoxGeometry(3.2,3.4,3.2),new THREE.MeshPhysicalMaterial({color:0xcfe8ff,transparent:true,opacity:.1,roughness:0,clearcoat:1,side:THREE.DoubleSide,depthWrite:false}));glass.renderOrder=5;
+  const frame=new THREE.LineSegments(new THREE.EdgesGeometry(glass.geometry),new THREE.LineBasicMaterial({color:0xe8c872,transparent:true,opacity:.9}));
+  const dark=new THREE.MeshStandardMaterial({color:0x2a2118,metalness:.6,roughness:.35}),gm=new THREE.MeshStandardMaterial({color:0xb8892f,metalness:.9,roughness:.25});
+  const base=new THREE.Mesh(new THREE.BoxGeometry(3.6,.32,3.6),dark);base.position.y=-1.86;
+  const trim=new THREE.Mesh(new THREE.BoxGeometry(3.4,.08,3.4),gm);trim.position.y=-1.68;
+  const lid=new THREE.Mesh(new THREE.BoxGeometry(3.4,.18,3.4),gm);lid.position.y=1.79;
+  const ring=new THREE.Mesh(new THREE.TorusGeometry(1.35,.02,8,80),new THREE.MeshBasicMaterial({color:0xe8c872,transparent:true,opacity:.8}));ring.rotation.x=Math.PI/2;ring.position.y=-1.62;
+  rot.add(glass,frame,base,trim,lid,ring);
+  const PA=new Float32Array(180);for(let k=0;k<180;k++)PA[k]=(Math.random()-.5)*(k%3===1?3:2.9);const pg=new THREE.BufferGeometry();pg.setAttribute('position',new THREE.BufferAttribute(PA,3));
+  const pts=new THREE.Points(pg,new THREE.PointsMaterial({size:.05,color:mc||0xfff1bd,transparent:true,opacity:.8,blending:THREE.AdditiveBlending,depthWrite:false}));rot.add(pts);
+  sc.add(rot,new THREE.AmbientLight(0xffffff,.55));
+  const l1=new THREE.PointLight(0xffffff,1.4,0),l2=new THREE.PointLight(mc||col,1.3,0),l3=new THREE.PointLight(0xfff1bd,.9,0);l1.position.set(3,4,5);l2.position.set(-3,-1,3);l3.position.set(0,-3,-3);sc.add(l1,l2,l3);
+  let drag=0,lx=0,ly=0,vy=.006;const t0=performance.now();let last=t0;
+  cv.onpointerdown=ev=>{drag=1;lx=ev.clientX;ly=ev.clientY;cv.setPointerCapture(ev.pointerId)};
+  cv.onpointermove=ev=>{if(!drag)return;const dx=ev.clientX-lx,dy=ev.clientY-ly;rot.rotation.y+=dx*.012;rot.rotation.x=Math.max(-.6,Math.min(.6,rot.rotation.x+dy*.008));vy=dx*.0015;lx=ev.clientX;ly=ev.clientY};
+  cv.onpointerup=cv.onpointercancel=()=>{drag=0};
+  cv.addEventListener('wheel',ev=>{ev.preventDefault();cam.position.z=Math.max(6,Math.min(12.5,cam.position.z+ev.deltaY*.005))},{passive:false});
+  const loop=now=>{ivA=requestAnimationFrame(loop);const dt=Math.min(.05,(now-last)/1000);last=now;const k=Math.min(1,(now-t0)/900),en=1-Math.pow(1-k,3);
+    if(!drag){rot.rotation.y+=vy;vy+=(.006-vy)*.03;rot.rotation.x*=.97}
+    gem.rotation.y+=dt*.7;gem.position.y=-.1+Math.sin(now/800)*.12;rot.scale.setScalar(.3+.7*en);
+    if(iv.pulse>0){iv.pulse=Math.max(0,iv.pulse-dt*1.2);ring.material.color.setHex(iv.pup?0x6ee7a1:0xff7a8a).lerp(gold,1-iv.pulse);mat.emissiveIntensity=1+iv.pulse*2.5}
+    if(e.mut===5||t.i>.3)l2.color.setHSL((now/4000)%1,.7,.6);
+    pts.rotation.y=now/9000;R.render(sc,cam)};
+  ivA=requestAnimationFrame(loop)}
+function sellEx(id){const i=S.inv.findIndex(e=>e.id===id);if(i<0)return null;const e=S.inv[i],v=exVal(e);S.inv.splice(i,1);S.money+=v;S.st.sold++;S.st.earn+=v-e.cost;if(e.gi<S.st.best)S.st.best=e.gi;qfinP(e,v);delete iv.prev[id];save();ui();return{v,e}}
+$('invB').onclick=()=>{audioInit();iv.sel=null;invRender(true);$('invO').classList.add('show')};
+$('inv').onclick=ev=>{const b=ev.target.closest('button,.iv-card');if(!b)return;const d=b.dataset;
+  if(d.a==='close'){ivStop();iv.sel=null;$('invO').classList.remove('show')}
+  else if(d.a==='back'){iv.sel=null;invRender(true)}
+  else if(d.ex){iv.sel=d.ex;invRender(true)}
+  else if(d.a==='sellx'){const e=S.inv.find(x=>x.id===iv.sel);if(!e)return;
+    if(!iv.arm){iv.arm=1;b.textContent='もう一度押して売却　'+yen(exVal(e));clearTimeout(iv.armT);iv.armT=setTimeout(()=>{iv.arm=0;const s=$('ivSell');if(s)s.textContent='この展示物を売却する　'+yen(exVal(e))},3500);return}
+    clearTimeout(iv.armT);const r=b.getBoundingClientRect(),res=sellEx(e.id);if(res){burst(r.left+r.width/2,r.top,res.v>=res.e.cost?40:12,res.v>=res.e.v0);cxFloat(r.left+r.width/2,r.top-30,'+'+yen(res.v),res.v>=res.e.cost?30:24);sfx('claim')}
+    iv.sel=null;invRender(true)}};
+invTick();save();
+setInterval(()=>{const c=invTick();if(c){save();invOnTick()}invLive()},1000);
+
+</script>
+<script>
+(function(){try{var d=document.createElement('div');d.id='dust';var h='';for(var i=0;i<22;i++){h+='<i style="left:'+(Math.random()*100).toFixed(1)+'%;--s:'+(2+Math.random()*4).toFixed(1)+'px;--d:'+(9+Math.random()*10).toFixed(1)+'s;--w:-'+(Math.random()*14).toFixed(1)+'s;--x:'+((Math.random()-.5)*80).toFixed(0)+'px"></i>'}d.innerHTML=h;document.body.insertBefore(d,document.body.firstChild)}catch(e){}})();
+</script>
+<script>
+(function(){
+var KEY='lapidary_tut',EN=false;
+try{EN=typeof en==='function'&&en()}catch(e){}
+var J=[
+[null,'ようこそ、職人さん','原石を磨いて、宝石に仕上げて売るゲームです。かんたんな使い方を案内します。'],
+['.gauge','磨き度','石がどれだけ磨けたかを表します。100%に近いほど高い評価と値段になります。'],
+['#c','指でなぞって磨く','画面の石を指でなぞると削れます。指は何本使っても大丈夫です。'],
+['#mRot','回す','「回す」に切り替えると、石を指で回して裏側や見えない面を確認できます。'],
+['#revB','削り残しを見る','まだ削れていない部分が光って輪郭が出ます。磨き残しを探すときに使います。'],
+['#act','仕上げへ','磨き終わったらここを押します。売る・展示する・加工するなどを選べます。'],
+['#shopB','ショップ','研磨剤や道具、壁紙を買えます。お金をためて強化しましょう。'],
+['#invB','インベスト','展示している石の値段の上がり下がりを確認できます。'],
+['#qB','クエスト','達成すると報酬がもらえます。壁紙や研磨道具も手に入ります。'],
+['#idxB','図鑑','見つけた石や亜種の記録を見られます。'],
+['.money','所持金','売ったお金がここに増えます。',],
+[null,'準備完了','左の「？」ボタンで、この案内をいつでも見直せます。']];
+var E=[
+[null,'Welcome, artisan','Polish rough gems and sell them. Here is a quick tour.'],
+['.gauge','Polish','How polished the stone is. Closer to 100% means a higher grade and price.'],
+['#c','Swipe to polish','Swipe the stone to grind it. Any number of fingers works.'],
+['#mRot','Rotate','Switch to Rotate to turn the stone and check every side.'],
+['#revB','Unpolished spots','Shows the parts still unpolished with a glowing outline.'],
+['#act','Finish','Tap when done. Sell, display or process the stone.'],
+['#shopB','Shop','Buy abrasives, tools and wallpapers.'],
+['#invB','Invest','See how the value of displayed stones moves.'],
+['#qB','Quests','Complete quests for rewards, including wallpapers and tools.'],
+['#idxB','Index','Browse the stones and variants you have found.'],
+['.money','Money','Your earnings appear here.'],
+[null,'All set','Tap the ? button on the left to replay this tour anytime.']];
+var S=EN?E:J,i=0,w,h,c;
+function build(){
+ w=document.createElement('div');w.id='tutW';
+ w.innerHTML='<div id="tutH"></div><div id="tutC" role="dialog" aria-live="polite"><h3></h3><p></p><div class="tf"><div class="dots"></div><button class="sk">'+(EN?'Skip':'スキップ')+'</button><button class="on nx"></button></div></div>';
+ document.body.appendChild(w);h=w.querySelector('#tutH');c=w.querySelector('#tutC');
+ var d=c.querySelector('.dots');for(var k=0;k<S.length;k++)d.appendChild(document.createElement('i'));
+ c.querySelector('.sk').onclick=end;c.querySelector('.nx').onclick=function(){i<S.length-1?(i++,show()):end()};
+ w.addEventListener('pointerdown',function(e){e.stopPropagation()},true);
+}
+function show(){
+ var s=S[i],t=s[0]?document.querySelector(s[0]):null,r,vw=innerWidth,vh=innerHeight;
+ if(t){r=t.getBoundingClientRect();if(s[0]==='#c'){r={left:vw*.15,top:vh*.28,width:vw*.7,height:vh*.34,right:vw*.85,bottom:vh*.62}}}
+ else r={left:vw/2,top:vh*.45,width:0,height:0,right:vw/2,bottom:vh*.45};
+ var p=8;
+ h.style.left=(r.left-p)+'px';h.style.top=(r.top-p)+'px';h.style.width=(r.width+p*2)+'px';h.style.height=(r.height+p*2)+'px';
+ h.style.opacity=t?1:0;h.classList.toggle('pulse',!!t);
+ c.querySelector('h3').textContent=s[1];c.querySelector('p').textContent=s[2];
+ c.querySelector('.nx').textContent=i===S.length-1?(EN?'Start':'はじめる'):(EN?'Next':'次へ');
+ var ds=c.querySelectorAll('.dots i');for(var k=0;k<ds.length;k++)ds[k].classList.toggle('o',k<=i);
+ var cw=Math.min(vw*.92,330),left=Math.max(8,Math.min(vw-cw-8,(r.left+r.width/2)-cw/2));
+ c.style.left=left+'px';c.style.right='auto';
+ if(!t){c.style.top=(vh*.3)+'px';c.style.bottom='auto'}
+ else if(r.top+r.height/2>vh*.55){c.style.bottom=(vh-r.top+p+14)+'px';c.style.top='auto'}
+ else{c.style.top=(r.bottom+p+14)+'px';c.style.bottom='auto'}
+}
+function start(){if(!w)build();i=0;w.classList.add('show');show()}
+function end(){if(w)w.classList.remove('show');try{localStorage.setItem(KEY,'1')}catch(e){}}
+var b=document.createElement('button');b.id='tutB';b.setAttribute('aria-label',EN?'Tutorial':'チュートリアル');b.textContent='?';b.onclick=start;document.body.appendChild(b);
+addEventListener('resize',function(){if(w&&w.classList.contains('show'))show()});
+var done=false;try{done=localStorage.getItem(KEY)==='1'}catch(e){}
+if(!done){var n=0,iv=setInterval(function(){n++;if(n>400){clearInterval(iv);return}
+ if(document.querySelector('.ov.show'))return;clearInterval(iv);setTimeout(start,700)},300)}
+})();
+</script>
+</body>
+</html>
